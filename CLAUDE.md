@@ -172,6 +172,7 @@ Per i **Capitoli II–VI (4×4)** MD-increasing è stata verificata in vivo:
 - Capitolo II (15–28): confermato, zero fallback
 - Capitolo III (28–42): confermato, ceiling > 42 su 4×4
 - Capitolo IV (40–52): confermato, ceiling > 52 su 4×4 (51-52 richiedono ~3s/livello)
+- Capitolo V (44–52): 19/20 livelli — MD=52 instabile (1 skip su 2 tentativi, ceiling pratico ~51)
 Per i capitoli con target >52 mosse, reverificare con `GenerateChapter0X.gd`:
 se compaiono SKIP nel log, il ceiling è stato raggiunto e servono fallback offline.
 
@@ -262,7 +263,9 @@ dinamicamente dalla struttura dati aggiornata.
 | `GenerateChapter03.gd` | ✅ EditorScript con rilevamento ceiling, seed fisso |
 | `data/levels/chapter_04.json` | ✅ 20 livelli 4×4, optimal 40–52, MD-increasing pura (ceiling >52) |
 | `GenerateChapter04.gd` | ✅ strategia duale MD+A* fallback, seed fisso |
-| Capitoli V–VI (4×4) | ⬜ prossimo step — ceiling MD-increasing da sondare oltre 52 |
+| `data/levels/chapter_05.json` | ✅ 19 livelli 4×4, optimal 44–52 (MD=52 instabile: 1/2 skip) |
+| `GenerateChapter05.gd` | ✅ MD-increasing pura, seed fisso |
+| Capitolo VI (4×4) | ⬜ prossimo step — ceiling pratico MD-increasing ~51; ≥53 richiede fallback A* |
 | LevelSelect, ChapterSelect | ⬜ non iniziato |
 | Sistema stelle e mosse | ⬜ non iniziato |
 | Autoload (GameManager, ecc.) | ⬜ non iniziato |
