@@ -27,6 +27,12 @@ class SolveResult:
 
 	var solvable: bool = false
 	var optimal_moves: int = 0
+	# Quanti nodi sono stati estratti dal closed set durante la ricerca.
+	# Utile per misurare la difficoltà computazionale indipendentemente dall'hardware.
+	var nodes_explored: int = 0
+	# true se la ricerca è stata interrotta per aver raggiunto max_nodes.
+	# In questo caso optimal_moves è -1 e path è vuoto.
+	var aborted: bool = false
 
 	# Sequenza di BoardState dall'iniziale al risolto.
 	# path[0] = stato iniziale, path[-1] = stato risolto.
@@ -139,10 +145,11 @@ class _MinHeap:
 # Risolve il puzzle dato e ritorna un SolveResult.
 # Garantisce la soluzione OTTIMALE grazie all'euristico ammissibile (Manhattan).
 #
-# Complessità: dipende dalla difficoltà dello stato — nei casi peggiori del
-# 15-puzzle può esplorare milioni di nodi, ma per livelli di gioco pratico
-# (ottimale <= 80 mosse) è gestibile.
-func solve(initial: BoardState) -> SolveResult:
+# max_nodes: limite al numero di nodi esplorati. 0 = nessun limite.
+# Se il limite viene raggiunto, result.aborted = true e optimal_moves = -1.
+# Usare max_nodes per evitare attese infinite su puzzle molto profondi (>30 mosse
+# con A* + Manhattan sul 15-puzzle).
+func solve(initial: BoardState, max_nodes: int = 0) -> SolveResult:
 	var result := SolveResult.new()
 
 	# Controllo solvibilità prima di avviare A* — O(N²), molto più veloce.
@@ -179,6 +186,14 @@ func solve(initial: BoardState) -> SolveResult:
 		if closed_set.has(key):
 			continue
 		closed_set[key] = true
+		result.nodes_explored += 1
+
+		# Controllo limite nodi: se raggiunto, abortisci senza risultato.
+		# max_nodes == 0 significa "nessun limite" — il confronto è saltato.
+		if max_nodes > 0 and result.nodes_explored >= max_nodes:
+			result.aborted = true
+			result.optimal_moves = -1
+			return result
 
 		# Soluzione trovata: ricostruiamo il percorso.
 		if current.state.is_solved():
@@ -206,11 +221,11 @@ func solve(initial: BoardState) -> SolveResult:
 
 
 # Ritorna solo il numero ottimale di mosse, senza il percorso completo.
-# Più leggero di solve() perché non ricostruisce il path — utile per calcolare
-# il "par" di un livello senza memorizzare tutta la sequenza di stati.
-func count_optimal_moves(initial: BoardState) -> int:
-	var result := solve(initial)
-	if not result.solvable:
+# max_nodes: passa 0 per nessun limite, altrimenti la ricerca si interrompe
+# e ritorna -1 se il limite viene raggiunto.
+func count_optimal_moves(initial: BoardState, max_nodes: int = 0) -> int:
+	var result := solve(initial, max_nodes)
+	if not result.solvable or result.aborted:
 		return -1
 	return result.optimal_moves
 

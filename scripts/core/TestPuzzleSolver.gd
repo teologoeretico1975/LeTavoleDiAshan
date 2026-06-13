@@ -18,6 +18,7 @@ func _run() -> void:
 	_test_real_puzzle_3x3()
 	_test_manhattan_heuristic()
 	_test_4x4_scrambled_performance()
+	_test_4x4_worst_case_performance()
 
 	print("\nTutti i test completati.")
 
@@ -134,63 +135,119 @@ func _test_manhattan_heuristic() -> void:
 	print("Manhattan dopo 2 mosse: ", solver.manhattan_distance(two_moves), "  (atteso 2)")
 
 
-func _test_4x4_scrambled_performance() -> void:
-	print("\n--- 4x4 scramblato ~20 mosse: performance A* ---")
-
-	# Generiamo uno stato applicando 20 mosse casuali non-inverse dallo stato risolto.
-	# "Non-inverse" = non torniamo immediatamente indietro (evita di annullare la mossa
-	# precedente, altrimenti ci ritrovassimo con uno scramble effettivo molto minore).
-	# Questo garantisce che lo stato abbia circa 20 mosse di distanza dalla soluzione
-	# (la soluzione ottimale potrebbe essere minore se esistono scorciatoie).
+# Genera uno stato 4x4 applicando n_moves mosse casuali non-inverse dallo stato risolto.
+# "Non-inverse" = non annulliamo immediatamente la mossa precedente, così lo scramble
+# effettivo è vicino a n_moves (la soluzione ottimale potrebbe essere minore se esistono
+# scorciatoie nella griglia, ma resta nell'ordine di grandezza corretto).
+# p_seed fisso → risultato riproducibile ad ogni esecuzione.
+func _scramble_4x4(n_moves: int, p_seed: int) -> BoardState:
 	var state := BoardState.solved(4)
 	var rng := RandomNumberGenerator.new()
-	# seed() fisso → risultato riproducibile ad ogni esecuzione del test.
-	# Utile per debug: se il test fallisce puoi riprodurlo esattamente.
-	# Equivalente di "new Random(42)" in C#.
-	rng.seed = 42
+	rng.seed = p_seed
 
-	var last_move: int = -1  # indice dell'ultima mossa applicata (per evitare l'inversa)
-	var moves_applied: int = 0
-	while moves_applied < 20:
+	# prev_blank traccia dove si trovava il blank PRIMA dell'ultima mossa,
+	# ovvero l'indice che andremmo a muovere per annullare la mossa appena fatta.
+	var prev_blank: int = -1
+	for _i in range(n_moves):
 		var valid := state.valid_moves()
-
-		# Rimuoviamo dall'elenco la mossa che annullerebbe quella precedente.
-		# Quando muoviamo la tile T nel blank, il blank si sposta dove stava T.
-		# La mossa inversa è quella che riporta il blank nella posizione originale,
-		# ovvero la mossa verso l'indice dove ora si trova il blank (= last_move).
-		# "erase()" rimuove la prima occorrenza del valore — come List<T>.Remove() in C#.
-		if last_move != -1:
-			valid.erase(state.blank_index)  # dopo la mossa, blank_index è già aggiornato
-
-		# randi_range(min, max) ritorna un intero casuale in [min, max] inclusi.
-		# Equivalente di "Random.Next(min, max+1)" in C#.
+		# erase() rimuove la prima occorrenza del valore — come List<T>.Remove() in C#.
+		# Rimuoviamo la mossa inversa: quella che riporta il blank dove era prima.
+		if prev_blank != -1:
+			valid.erase(prev_blank)
+		prev_blank = state.blank_index
 		var chosen: int = valid[rng.randi_range(0, valid.size() - 1)]
-		last_move = state.blank_index  # salviamo dove era il blank prima della mossa
 		state = state.apply_move(chosen)
-		moves_applied += 1
 
-	print("Stato generato (20 mosse random, seed=42):")
-	print(state)
-	print("Manhattan distance iniziale: ", PuzzleSolver.new().manhattan_distance(state))
+	return state
 
-	# --- Misurazione del tempo ---
-	# Time.get_ticks_msec() ritorna i millisecondi dall'avvio dell'engine.
-	# È la funzione più semplice per misurare elapsed time in GDScript —
-	# equivalente di Stopwatch.GetTimestamp() in C#.
+
+const MAX_NODES: int = 500_000  # soglia di abort per tutti i test di performance
+
+
+# Esegue solve() con il limite MAX_NODES, stampa manhattan/tempo/nodi/risultato,
+# e ritorna true se la ricerca è stata abortita (utile per il riepilogo finale).
+func _run_performance_check_ex(state: BoardState) -> bool:
 	var solver := PuzzleSolver.new()
+	print("  Manhattan iniziale : ", solver.manhattan_distance(state))
+
 	var t_start: int = Time.get_ticks_msec()
-	var optimal: int = solver.count_optimal_moves(state)
-	var t_end: int = Time.get_ticks_msec()
-	var elapsed_ms: int = t_end - t_start
+	# Passiamo MAX_NODES come limite: se A* supera quella soglia si ferma
+	# e result.aborted = true, invece di girare per minuti/ore.
+	var result := solver.solve(state, MAX_NODES)
+	var elapsed_ms: int = Time.get_ticks_msec() - t_start
 
-	print("Mosse ottimali trovate: ", optimal)
-	print("Tempo A*: %d ms" % elapsed_ms)
+	var status: String = " → LIMITE RAGGIUNTO" if result.aborted else " → completato"
+	print("  Nodi esplorati     : %d / %d%s" % [result.nodes_explored, MAX_NODES, status])
+	print("  Tempo              : %d ms" % elapsed_ms)
 
-	# Soglia orientativa: oltre 1000 ms per un singolo puzzle sarebbe problematico
-	# per la generazione batch di centinaia di livelli.
-	if elapsed_ms < 100:
-		print("→ VELOCE: generazione batch dei livelli fattibile senza ottimizzazioni.")
-	elif elapsed_ms < 1000:
-		print("→ ACCETTABILE: generazione batch fattibile, ma valutare IDA* per puzzle > 25 mosse.")
+	if result.aborted:
+		print("  Ottimale           : ABORTITO (oltre %d nodi)" % MAX_NODES)
+		print("  → TROPPO LENTO per A* + Manhattan. Vedi riepilogo finale.")
 	else:
-		print("→ LENTO: considerare IDA* o pre-calcolo offline dei livelli.")
+		print("  Ottimale           : %d mosse" % result.optimal_moves)
+		if elapsed_ms < 100:
+			print("  → OK: A* praticabile per generazione batch.")
+		elif elapsed_ms < 1000:
+			print("  → BORDERLINE: accettabile offline, non in real-time.")
+		else:
+			print("  → LENTO: considerare IDA*.")
+
+	return result.aborted
+
+
+func _test_4x4_scrambled_performance() -> void:
+	print("\n--- 4x4 threshold scan: 30 / 40 / 50 / 60 mosse (limite %d nodi) ---" % MAX_NODES)
+	print("Obiettivo: trovare la soglia pratica di A* + Manhattan sul 15-puzzle.")
+	print("Seed diversi per evitare che uno stato particolarmente fortunato")
+	print("falsifichi la misurazione.")
+	print("")
+
+	# Array of [n_moves, seed] — sintassi GDScript per array di array.
+	# Equivalente di List<(int, int)> in C#.
+	var cases: Array = [
+		[30, 1001],
+		[40, 2002],
+		[50, 3003],
+		[60, 4004],
+	]
+
+	var any_aborted: bool = false
+	for c in cases:
+		var n_moves: int = c[0]
+		var seed: int    = c[1]
+		var state := _scramble_4x4(n_moves, seed)
+		print("Scramble ~%d mosse (seed=%d):" % [n_moves, seed])
+		var aborted := _run_performance_check_ex(state)
+		if aborted:
+			any_aborted = true
+		print("")
+
+	print("=" .repeat(40))
+	if any_aborted:
+		print("CONCLUSIONE: A* + Manhattan supera %d nodi su almeno un caso." % MAX_NODES)
+		print("Per i livelli oltre la soglia pratica, le opzioni sono:")
+		print("")
+		print("  1. IDA* (Iterative Deepening A*)")
+		print("     Pro: memoria O(d) invece di O(b^d) — non accumula nodi in RAM.")
+		print("     Implementazione: loop su soglie f crescenti, DFS dentro ogni soglia.")
+		print("     Con Manhattan risolve il 15-puzzle a 80 mosse in ~10-50ms.")
+		print("     Contro: riesplora nodi già visti (ma per 15-puzzle è comunque veloce).")
+		print("")
+		print("  2. Pre-generazione offline dei livelli")
+		print("     Calcola optimal_moves una volta sola fuori da Godot (Python/C#),")
+		print("     salva il valore nel JSON del livello.")
+		print("     A runtime il gioco usa il valore precalcolato: zero overhead.")
+		print("     Ideale se i livelli sono fissi (non generati proceduralmente).")
+		print("")
+		print("  RACCOMANDAZIONE per questo progetto:")
+		print("  Capitoli I-IV (livelli prefissati): pre-generazione offline.")
+		print("  Hint in-game e Daily Puzzle (real-time): IDA*.")
+	else:
+		print("CONCLUSIONE: A* + Manhattan rimane entro %d nodi per tutti i casi." % MAX_NODES)
+		print("Generazione batch praticabile senza cambiare algoritmo.")
+	print("=" .repeat(40))
+
+
+func _test_4x4_worst_case_performance() -> void:
+	# Rimosso: sostituito da _test_4x4_scrambled_performance con threshold scan.
+	pass
