@@ -288,6 +288,15 @@ func _refresh_tiles() -> void:
 		var panel: Panel = _tile_nodes[i]
 		var label: Label = panel.get_node("Label")
 
+		# Riposiziona sempre il panel alla cella di griglia corrispondente a i.
+		# Questo è necessario perché il blank panel non viene mai animato dal tween
+		# (solo la tile cliccata si muove), quindi senza questa riga rimarrebbe
+		# fisicamente nella posizione di partenza e risulterebbe sovrapposto
+		# alla tile successiva che lo rimpiazza.
+		var row: int = i / GRID_SIZE
+		var col: int = i % GRID_SIZE
+		panel.position = Vector2(col * (TILE_SIZE + TILE_GAP), row * (TILE_SIZE + TILE_GAP))
+
 		if val == 0:
 			# La casella vuota è invisibile — il "buco" nella griglia.
 			panel.visible = false
