@@ -171,7 +171,8 @@ Per i **Capitoli II–VI (4×4)** MD-increasing è stata verificata in vivo:
 - BFS Python offline: raggiungibile almeno fino a MD=34+
 - Capitolo II (15–28): confermato, zero fallback
 - Capitolo III (28–42): confermato, ceiling > 42 su 4×4
-Per i capitoli con target >42 mosse, reverificare con `GenerateChapter0X.gd`:
+- Capitolo IV (40–52): confermato, ceiling > 52 su 4×4 (51-52 richiedono ~3s/livello)
+Per i capitoli con target >52 mosse, reverificare con `GenerateChapter0X.gd`:
 se compaiono SKIP nel log, il ceiling è stato raggiunto e servono fallback offline.
 
 **Nota implementativa:** il generatore `GenerateChapter02.gd` usa MD-increasing
@@ -259,7 +260,9 @@ dinamicamente dalla struttura dati aggiornata.
 | `GenerateChapter02.gd` | ✅ EditorScript rigenerabile con seed fisso |
 | `data/levels/chapter_03.json` | ✅ 20 livelli 4×4, optimal 28–42, ceiling MD-increasing > 42 |
 | `GenerateChapter03.gd` | ✅ EditorScript con rilevamento ceiling, seed fisso |
-| Capitoli IV–VI (4×4) | ⬜ prossimo step — MD-increasing valida, ceiling da riverificare >42 |
+| `data/levels/chapter_04.json` | ✅ 20 livelli 4×4, optimal 40–52, MD-increasing pura (ceiling >52) |
+| `GenerateChapter04.gd` | ✅ strategia duale MD+A* fallback, seed fisso |
+| Capitoli V–VI (4×4) | ⬜ prossimo step — ceiling MD-increasing da sondare oltre 52 |
 | LevelSelect, ChapterSelect | ⬜ non iniziato |
 | Sistema stelle e mosse | ⬜ non iniziato |
 | Autoload (GameManager, ecc.) | ⬜ non iniziato |
