@@ -265,7 +265,8 @@ dinamicamente dalla struttura dati aggiornata.
 | `GenerateChapter04.gd` | ✅ strategia duale MD+A* fallback, seed fisso |
 | `data/levels/chapter_05.json` | ✅ 19 livelli 4×4, optimal 44–52 (MD=52 instabile: 1/2 skip) |
 | `GenerateChapter05.gd` | ✅ MD-increasing pura, seed fisso |
-| Capitolo VI (4×4) | ⬜ prossimo step — ceiling pratico MD-increasing ~51; ≥53 richiede fallback A* |
+| `data/levels/chapter_06.json` | ✅ 20 livelli 4×4, optimal 48–52, par_moves×1.2 (3 stelle difficili) |
+| `GenerateChapter06.gd` | ✅ MD-increasing pura, seed fisso |
 | LevelSelect, ChapterSelect | ⬜ non iniziato |
 | Sistema stelle e mosse | ⬜ non iniziato |
 | Autoload (GameManager, ecc.) | ⬜ non iniziato |
