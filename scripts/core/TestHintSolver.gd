@@ -47,7 +47,7 @@ func _test_one_move_away() -> void:
 	print("Stato 3x3 dopo apply_move(7):")
 	print(moved_3)
 	var suggested_3: int = hint.suggest_move(moved_3)
-	print("suggest_move(): ", suggested_3, "  (atteso 7 — riporta allo stato risolto)")
+	print("suggest_move(): ", suggested_3, "  (atteso 8 — tile in posizione 8 torna nel blank a posizione 7)")
 	# Verifica: applicando la mossa suggerita si ottiene lo stato risolto.
 	print("Applicando la mossa suggerita si ottiene risolto: ",
 		moved_3.apply_move(suggested_3).is_solved())
