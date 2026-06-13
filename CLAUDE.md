@@ -82,6 +82,29 @@ core come strumenti, e comunicano con le scene tramite **segnali**.
 
 ---
 
+## Decisione architetturale: solver offline vs hint runtime
+
+Due strumenti distinti, con complessità e contesti d'uso opposti:
+
+| | `PuzzleSolver.solve()` | `HintSolver.suggest_move()` |
+|---|---|---|
+| **Algoritmo** | A* (ricerca esaustiva) | Greedy one-step (Manhattan) |
+| **Complessità** | Esponenziale nel caso peggiore | O(k × N²), sempre costante |
+| **Tempo 4x4** | Da ms a ore (dipende dalla profondità) | < 0.1 ms in ogni caso |
+| **Uso** | Generazione offline dei livelli | Hint in-game, real-time |
+| **Ottimale?** | Sì, garantito | No, greedy (buono ma non ottimale) |
+
+**Contesto:** A* + Manhattan sul 15-puzzle supera 500 000 nodi già a ~30–40 mosse
+di profondità e non termina in tempi accettabili oltre quella soglia.
+`suggest_move()` è istantaneo su qualsiasi stato ed è l'unico approccio
+praticabile per hint chiamati a runtime durante la partita.
+
+Per i livelli con `optimal_moves` elevato (Capitoli V–VI), il valore va
+pre-calcolato offline con uno script esterno (Python/C#) e salvato nel JSON
+del livello — non calcolato a runtime da `PuzzleSolver`.
+
+---
+
 ## Pattern: comunicazione tra nodi
 
 Preferire sempre i segnali Godot al posto delle chiamate dirette tra nodi.
