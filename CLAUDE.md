@@ -263,6 +263,7 @@ dinamicamente dalla struttura dati aggiornata.
 | LevelSelect, ChapterSelect | ⬜ non iniziato |
 | Sistema stelle e mosse | ⬜ non iniziato |
 | Autoload (GameManager, ecc.) | ⬜ non iniziato |
+| Titoli evocativi Capitoli II–VI | ⬜ da scrivere in sessione dedicata alla lore — attualmente placeholder "Livello X-N" in `chapter_02.json`–`chapter_06.json`; seguire lo stile del Capitolo I (vedi `chapter_01.json`) |
 
 ---
 
