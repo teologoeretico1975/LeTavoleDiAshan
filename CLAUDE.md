@@ -158,6 +158,22 @@ Campi minimi di un livello:
 `initial_state`: array piatto, `0` rappresenta la casella vuota.
 `optimal_moves`: calcolato offline con A* prima di esportare i dati.
 
+### Tecnica MD-increasing per generazione 3×3
+
+Per il Capitolo I (3×3) `optimal_moves` è garantito senza eseguire A*
+usando la tecnica **MD-increasing**: si applica una sequenza di K mosse
+non-inverse dallo stato risolto scegliendo ad ogni passo una mossa che
+aumenta la Manhattan distance di esattamente 1. Se MD(stato) = K e il
+percorso ha lunghezza K, allora `optimal_moves = K` per la doppia
+disuguaglianza `MD ≤ optimal ≤ path_length`.
+
+Per i **Capitoli II–VI (4×4)** questa tecnica potrebbe non coprire i
+range di difficoltà previsti oltre ~20 mosse. Le alternative da valutare:
+- Continuare con MD-increasing fino al limite pratico (~20 mosse 4×4)
+- Random scramble + verifica A* con `max_nodes` per stati moderati
+- Pre-generazione offline con script Python/C# per i capitoli V–VI
+  (dove `optimal_moves` può avvicinarsi a 40–60, fuori portata di A* GDScript)
+
 ---
 
 ## Target di export
@@ -180,6 +196,46 @@ dall'editor Godot (`Editor → Manage Export Templates`).
   La logica di business va in funzioni con nome esplicito chiamate da `_ready()`.
 - Preferire `@export` per i parametri configurabili dall'editor invece di costanti hardcoded.
 - I commenti spiegano il **perché**, non il cosa. Il codice ben nominato spiega il cosa.
+
+---
+
+## Lezioni architetturali emerse dallo sviluppo
+
+### Non aggiornare UI in modo incrementale da callback asincroni
+
+**Problema riscontrato:** `tween_callback` catturava `blank_index` al momento
+del click. Il panel del blank non veniva animato (solo la tile cliccata si muove),
+quindi rimaneva fisicamente nella posizione originale. Alla mossa successiva
+diventava visibile in quella posizione sbagliata, sovrapposto alla tile successiva.
+
+**Pattern corretto:** dopo ogni cambiamento di stato logico, ri-renderizzare
+l'intera UI da zero partendo dallo stato — non fare aggiornamenti incrementali
+(es. "sposta solo questo panel"). In `_refresh_tiles()` tutte le `position`
+vengono ricalcolate per tutti i panel, non solo per quello animato. Il nodo
+appena animato viene riposizionato alla stessa coordinata in cui si trova già
+(operazione idempotente), il blank viene correttamente piazzato nella sua nuova
+cella. Questo elimina qualsiasi deriva accumulata tra stato logico e stato visivo.
+
+**Regola generale:** le callback asincrone (tween, timer, segnali differiti)
+devono **leggere lo stato attuale** al momento dell'esecuzione, non dipendere
+da variabili catturate al momento della registrazione.
+
+---
+
+## Stato avanzamento progetto
+
+| Componente | Stato |
+|---|---|
+| `BoardState` (core) | ✅ completo, testato |
+| `PuzzleSolver` A* (core) | ✅ completo, limite nodi confermato ~30 mosse 4×4 |
+| `HintSolver` greedy (core) | ✅ completo, istantaneo su qualsiasi stato |
+| `GameBoard.tscn` + script | ✅ funzionante: griglia cliccabile, tween, flash risoluzione |
+| `data/levels/chapter_01.json` | ✅ 12 livelli 3×3, optimal 5–16, tecnica MD-increasing |
+| `GenerateChapter01.gd` | ✅ EditorScript rigenerabile con seed fisso |
+| Capitoli II–VI (4×4) | ⬜ prossimo step — vedere nota tecnica sopra |
+| LevelSelect, ChapterSelect | ⬜ non iniziato |
+| Sistema stelle e mosse | ⬜ non iniziato |
+| Autoload (GameManager, ecc.) | ⬜ non iniziato |
 
 ---
 
