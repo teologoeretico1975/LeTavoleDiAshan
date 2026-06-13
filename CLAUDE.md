@@ -249,28 +249,40 @@ dinamicamente dalla struttura dati aggiornata.
 
 ## Stato avanzamento progetto
 
+### Core e gameplay
+
 | Componente | Stato |
 |---|---|
 | `BoardState` (core) | ✅ completo, testato |
 | `PuzzleSolver` A* (core) | ✅ completo, limite nodi confermato ~30 mosse 4×4 |
 | `HintSolver` greedy (core) | ✅ completo, istantaneo su qualsiasi stato |
-| `GameBoard.tscn` + script | ✅ funzionante: griglia cliccabile, tween, flash risoluzione |
-| `data/levels/chapter_01.json` | ✅ 12 livelli 3×3, optimal 5–16, tecnica MD-increasing |
-| `GenerateChapter01.gd` | ✅ EditorScript rigenerabile con seed fisso |
-| `data/levels/chapter_02.json` | ✅ 20 livelli 4×4, optimal 15–28, MD-increasing con retry |
-| `GenerateChapter02.gd` | ✅ EditorScript rigenerabile con seed fisso |
-| `data/levels/chapter_03.json` | ✅ 20 livelli 4×4, optimal 28–42, ceiling MD-increasing > 42 |
-| `GenerateChapter03.gd` | ✅ EditorScript con rilevamento ceiling, seed fisso |
-| `data/levels/chapter_04.json` | ✅ 20 livelli 4×4, optimal 40–52, MD-increasing pura (ceiling >52) |
-| `GenerateChapter04.gd` | ✅ strategia duale MD+A* fallback, seed fisso |
-| `data/levels/chapter_05.json` | ✅ 19 livelli 4×4, optimal 44–52 (MD=52 instabile: 1/2 skip) |
-| `GenerateChapter05.gd` | ✅ MD-increasing pura, seed fisso |
-| `data/levels/chapter_06.json` | ✅ 20 livelli 4×4, optimal 48–52, par_moves×1.2 (3 stelle difficili) |
-| `GenerateChapter06.gd` | ✅ MD-increasing pura, seed fisso |
-| LevelSelect, ChapterSelect | ⬜ non iniziato |
-| Sistema stelle e mosse | ⬜ non iniziato |
-| Autoload (GameManager, ecc.) | ⬜ non iniziato |
-| Titoli evocativi Capitoli II–VI | ⬜ da scrivere in sessione dedicata alla lore — attualmente placeholder "Livello X-N" in `chapter_02.json`–`chapter_06.json`; seguire lo stile del Capitolo I (vedi `chapter_01.json`) |
+| `GameBoard.tscn` + script | ✅ griglia cliccabile, tween, flash risoluzione; `@export chapter/level_id` |
+
+### Dati livelli (tutti i 6 capitoli completati)
+
+| File | Stato |
+|---|---|
+| `chapter_01.json` | ✅ 12 livelli 3×3, optimal 5–16, **titoli evocativi definitivi** |
+| `chapter_02.json` | ✅ 20 livelli 4×4, optimal 15–28, titoli placeholder |
+| `chapter_03.json` | ✅ 20 livelli 4×4, optimal 28–42, titoli placeholder |
+| `chapter_04.json` | ✅ 20 livelli 4×4, optimal 40–52, titoli placeholder |
+| `chapter_05.json` | ✅ 19 livelli 4×4, optimal 44–52, titoli placeholder (1 skip MD=52) |
+| `chapter_06.json` | ✅ 20 livelli 4×4, optimal 48–52, par_moves×1.2, titoli placeholder |
+
+Tutti i generatori `GenerateChapter01–06.gd` usano MD-increasing pura con seed fisso.
+Ceiling MD-increasing su 4×4: **~51 stabile, 52 borderline** (timeout a 55+).
+
+### Non iniziato — prossimi step
+
+| Componente | Note |
+|---|---|
+| `LevelLoader` (Autoload) | **prossimo step** — singleton che carica qualsiasi `chapter_XX.json` e fornisce livelli a `GameBoard`; base per le scene di navigazione |
+| `GameManager` (Autoload) | stato globale: capitolo corrente, monete, progressione |
+| `SaveManager` (Autoload) | salvataggio/caricamento su disco |
+| `AudioManager` (Autoload) | musica e SFX |
+| `ChapterSelect`, `LevelSelect`, `MainMenu` | dipendono da `LevelLoader` |
+| Sistema stelle/mosse a schermo | `par_moves`/`good_moves` esistono nei JSON ma non sono letti da `GameBoard` |
+| Titoli evocativi Cap II–VI | placeholder "Livello X-N" — da sessione dedicata alla lore (stile: vedi `chapter_01.json`) |
 
 ---
 
