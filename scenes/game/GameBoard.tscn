@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://c7kn2p4qb8x3m"]
 
-[ext_resource type="Script" path="res://scripts/ui/GameBoard.gd" id="1_gameboard"]
+[ext_resource type="Script" uid="uid://dwymcb6ruvrn2" path="res://scripts/ui/GameBoard.gd" id="1_gameboard"]
 
-[node name="GameBoard" type="Control"]
+[node name="GameBoard" type="Control" unique_id=1394509845]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -10,3 +10,4 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_gameboard")
+chapter = 2

@@ -16,12 +16,22 @@ extends Control
 
 
 # ---------------------------------------------------------------------------
+# Parametri configurabili dall'editor
+# ---------------------------------------------------------------------------
+
+@export var chapter: int = 1
+@export var level_id: int = 1
+
+
+# ---------------------------------------------------------------------------
 # Costanti di layout e palette
 # ---------------------------------------------------------------------------
 
-const GRID_SIZE: int = 3
 const TILE_SIZE: float = 120.0
 const TILE_GAP: float = 10.0
+
+# Dimensione griglia: derivata dai dati del livello in _load_level().
+var _grid_size: int = 3
 
 # Palette Capitolo I — "La Soglia"
 # Color() accetta stringhe esadecimali "rrggbb" o "rrggbbaa" — come Color.FromArgb() in C#.
@@ -61,7 +71,7 @@ func _ready() -> void:
 
 	_setup_background()
 
-	_state = _load_level(1)
+	_state = _load_level(chapter, level_id)
 
 	_build_board()
 	_refresh_tiles()
@@ -71,7 +81,7 @@ func _ready() -> void:
 # Caricamento livello da JSON
 # ---------------------------------------------------------------------------
 
-# Legge data/levels/chapter_01.json e ritorna il BoardState del livello richiesto.
+# Legge data/levels/chapter_XX.json e ritorna il BoardState del livello richiesto.
 # In caso di errore (file mancante, JSON malformato, id non trovato) ritorna un
 # fallback hardcoded così il gioco non si blocca mai.
 #
@@ -82,8 +92,8 @@ func _ready() -> void:
 #     Devi verificare il tipo con "is" prima di usarlo.
 #   - I numeri in un JSON parsato diventano FLOAT in GDScript, non int.
 #     Occorre castare esplicitamente con int(v).
-func _load_level(level_id: int) -> BoardState:
-	var path := "res://data/levels/chapter_01.json"
+func _load_level(p_chapter: int, p_level_id: int) -> BoardState:
+	var path := "res://data/levels/chapter_%02d.json" % p_chapter
 
 	var file := FileAccess.open(path, FileAccess.READ)
 	if file == null:
@@ -101,33 +111,35 @@ func _load_level(level_id: int) -> BoardState:
 
 	# data["levels"] è un Array di Dictionary — equivale a List<Dictionary> in C#.
 	# .get(key, default) è il null-safe accessor: come dict.GetValueOrDefault() in C#.
+	# grid_size viene letto dai metadati del JSON, non hardcoded.
+	var json_grid_size: int = int(data.get("grid_size", 3))
+
 	var levels: Array = data.get("levels", [])
 	for level_data in levels:
-		if int(level_data.get("id", -1)) != level_id:
+		if int(level_data.get("id", -1)) != p_level_id:
 			continue
 
 		var raw: Array = level_data.get("initial_state", [])
-		if raw.size() != GRID_SIZE * GRID_SIZE:
+		if raw.size() != json_grid_size * json_grid_size:
 			push_warning("GameBoard: initial_state ha %d elementi (attesi %d)." \
-				% [raw.size(), GRID_SIZE * GRID_SIZE])
+				% [raw.size(), json_grid_size * json_grid_size])
 			return _fallback_state()
 
-		# I valori nel JSON parsato sono float: int(v) li converte in interi.
-		# Equivalente di (int)jsonElement.GetDouble() in C# System.Text.Json.
 		var tiles: Array[int] = []
 		for v in raw:
 			tiles.append(int(v))
 
-		return BoardState.new(tiles, GRID_SIZE)
+		_grid_size = json_grid_size
+		return BoardState.new(tiles, _grid_size)
 
-	push_warning("GameBoard: livello id=%d non trovato in %s." % [level_id, path])
+	push_warning("GameBoard: livello id=%d non trovato in %s." % [p_level_id, path])
 	return _fallback_state()
 
 
 # Stato di emergenza: [1,2,3,4,5,6,7,0,8] — 1 mossa dalla soluzione.
 # Usato solo se il JSON non è disponibile o è corrotto.
 func _fallback_state() -> BoardState:
-	return BoardState.solved(GRID_SIZE).apply_move(7)
+	return BoardState.solved(_grid_size).apply_move(7)
 
 
 func _setup_background() -> void:
@@ -143,7 +155,7 @@ func _setup_background() -> void:
 # ---------------------------------------------------------------------------
 
 func _build_board() -> void:
-	var board_px: float = GRID_SIZE * TILE_SIZE + (GRID_SIZE - 1) * TILE_GAP
+	var board_px: float = _grid_size * TILE_SIZE + (_grid_size - 1) * TILE_GAP
 
 	_board_container = Control.new()
 	_board_container.name = "BoardContainer"
@@ -164,9 +176,9 @@ func _build_board() -> void:
 	add_child(_board_container)
 
 	_tile_nodes = []
-	for i: int in GRID_SIZE * GRID_SIZE:
-		var row: int = i / GRID_SIZE
-		var col: int = i % GRID_SIZE
+	for i: int in _grid_size * _grid_size:
+		var row: int = i / _grid_size
+		var col: int = i % _grid_size
 		var tile := _make_tile(i)
 		# position è relativa al genitore (BoardContainer), partendo da (0,0) in alto a sinistra.
 		tile.position = Vector2(col * (TILE_SIZE + TILE_GAP), row * (TILE_SIZE + TILE_GAP))
@@ -208,10 +220,10 @@ func _make_tile(board_index: int) -> Panel:
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(label)
 
-	# Collega il segnale gui_input del Panel alla callback del controller.
-	# .bind(board_index) "cattura" board_index come argomento aggiuntivo — come una
-	# lambda che cattura una variabile in C#: panel.GUIInput += (e) => OnTileInput(e, board_index)
-	panel.gui_input.connect(_on_tile_input.bind(board_index))
+	# Passa il panel stesso (non l'indice) così _on_tile_input può ricercarne la
+	# posizione corrente in _tile_nodes al momento del click — l'indice originale
+	# non è affidabile dopo gli swap che avvengono ad ogni mossa.
+	panel.gui_input.connect(_on_tile_input.bind(panel))
 
 	return panel
 
@@ -220,20 +232,21 @@ func _make_tile(board_index: int) -> Panel:
 # Input
 # ---------------------------------------------------------------------------
 
-func _on_tile_input(event: InputEvent, board_index: int) -> void:
+func _on_tile_input(event: InputEvent, panel: Panel) -> void:
 	if _is_animating:
 		return
 
-	# "is" in GDScript = operatore "is" in C# — controlla il tipo a runtime.
 	if not event is InputEventMouseButton:
 		return
 
-	# "as" in GDScript = cast esplicito, come "(InputEventMouseButton)event" in C#.
 	var mb := event as InputEventMouseButton
 	if not (mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT):
 		return
 
-	_try_move(board_index)
+	# Ricerca la posizione corrente del panel in _tile_nodes — necessario perché
+	# i panel vengono scambiati nell'array dopo ogni mossa: l'indice originale
+	# catturato al momento della creazione non è più valido dopo il primo swap.
+	_try_move(_tile_nodes.find(panel))
 
 
 func _try_move(tile_index: int) -> void:
@@ -283,7 +296,7 @@ func _try_move(tile_index: int) -> void:
 # ---------------------------------------------------------------------------
 
 func _refresh_tiles() -> void:
-	for i: int in GRID_SIZE * GRID_SIZE:
+	for i: int in _grid_size * _grid_size:
 		var val: int = _state.tiles[i]
 		var panel: Panel = _tile_nodes[i]
 		var label: Label = panel.get_node("Label")
@@ -293,8 +306,8 @@ func _refresh_tiles() -> void:
 		# (solo la tile cliccata si muove), quindi senza questa riga rimarrebbe
 		# fisicamente nella posizione di partenza e risulterebbe sovrapposto
 		# alla tile successiva che lo rimpiazza.
-		var row: int = i / GRID_SIZE
-		var col: int = i % GRID_SIZE
+		var row: int = i / _grid_size
+		var col: int = i % _grid_size
 		panel.position = Vector2(col * (TILE_SIZE + TILE_GAP), row * (TILE_SIZE + TILE_GAP))
 
 		if val == 0:

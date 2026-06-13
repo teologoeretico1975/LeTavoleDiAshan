@@ -167,12 +167,15 @@ aumenta la Manhattan distance di esattamente 1. Se MD(stato) = K e il
 percorso ha lunghezza K, allora `optimal_moves = K` per la doppia
 disuguaglianza `MD ≤ optimal ≤ path_length`.
 
-Per i **Capitoli II–VI (4×4)** questa tecnica potrebbe non coprire i
-range di difficoltà previsti oltre ~20 mosse. Le alternative da valutare:
-- Continuare con MD-increasing fino al limite pratico (~20 mosse 4×4)
-- Random scramble + verifica A* con `max_nodes` per stati moderati
-- Pre-generazione offline con script Python/C# per i capitoli V–VI
-  (dove `optimal_moves` può avvicinarsi a 40–60, fuori portata di A* GDScript)
+Per i **Capitoli II–VI (4×4)** MD-increasing è stata verificata offline
+(BFS Python) ed è raggiungibile almeno fino a MD=34+, coprendo l'intero
+range 15–28 del Capitolo II senza fallback. Il ceiling reale è ben oltre 34.
+Per i capitoli con target >45 mosse circa, valutare pre-generazione offline.
+
+**Nota implementativa:** il generatore `GenerateChapter02.gd` usa MD-increasing
+con retry: un percorso casuale può finire in dead end anche se il target è
+raggiungibile, quindi si riparte da zero finché non riesce. Con K≤28 ogni
+tentativo è O(K), quindi anche 10 000 retry sono istantanei.
 
 ---
 
@@ -220,6 +223,24 @@ cella. Questo elimina qualsiasi deriva accumulata tra stato logico e stato visiv
 devono **leggere lo stato attuale** al momento dell'esecuzione, non dipendere
 da variabili catturate al momento della registrazione.
 
+### Non legare callback di nodi a indici di array mutabili
+
+**Problema riscontrato:** in `_make_tile(board_index)`, il segnale `gui_input`
+veniva connesso con `.bind(board_index)`. Dopo ogni mossa i panel vengono
+scambiati in `_tile_nodes`, quindi un panel che era alla posizione `i` si
+trova ora alla posizione `j` — ma il suo callback riporta ancora `i`.
+La mossa veniva scartata perché `i` non era adiacente al blank.
+
+**Pattern corretto:** passare il riferimento al nodo stesso (`.bind(panel)`)
+e cercare la posizione corrente dinamicamente al momento del click:
+```gdscript
+_try_move(_tile_nodes.find(panel))
+```
+
+**Regola generale:** quando i nodi di una lista vengono riordinati, i loro
+callback non devono dipendere dall'indice originale — devono ricavarlo
+dinamicamente dalla struttura dati aggiornata.
+
 ---
 
 ## Stato avanzamento progetto
@@ -232,7 +253,9 @@ da variabili catturate al momento della registrazione.
 | `GameBoard.tscn` + script | ✅ funzionante: griglia cliccabile, tween, flash risoluzione |
 | `data/levels/chapter_01.json` | ✅ 12 livelli 3×3, optimal 5–16, tecnica MD-increasing |
 | `GenerateChapter01.gd` | ✅ EditorScript rigenerabile con seed fisso |
-| Capitoli II–VI (4×4) | ⬜ prossimo step — vedere nota tecnica sopra |
+| `data/levels/chapter_02.json` | ✅ 20 livelli 4×4, optimal 15–28, MD-increasing con retry |
+| `GenerateChapter02.gd` | ✅ EditorScript rigenerabile con seed fisso |
+| Capitoli III–VI (4×4) | ⬜ prossimo step — MD-increasing valido fino a ~45 mosse |
 | LevelSelect, ChapterSelect | ⬜ non iniziato |
 | Sistema stelle e mosse | ⬜ non iniziato |
 | Autoload (GameManager, ecc.) | ⬜ non iniziato |
