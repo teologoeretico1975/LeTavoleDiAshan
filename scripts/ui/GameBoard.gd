@@ -61,13 +61,73 @@ func _ready() -> void:
 
 	_setup_background()
 
-	# Livello 1 Cap. I: stato risolto con una mossa invertita.
-	# apply_move(7) sposta la tile in posizione 7 (valore 8) nel blank (posizione 8).
-	# Risultato: [1,2,3,4,5,6,7,0,8] — un solo click per risolvere, ideale per tutorial.
-	_state = BoardState.solved(GRID_SIZE).apply_move(7)
+	_state = _load_level(1)
 
 	_build_board()
 	_refresh_tiles()
+
+
+# ---------------------------------------------------------------------------
+# Caricamento livello da JSON
+# ---------------------------------------------------------------------------
+
+# Legge data/levels/chapter_01.json e ritorna il BoardState del livello richiesto.
+# In caso di errore (file mancante, JSON malformato, id non trovato) ritorna un
+# fallback hardcoded così il gioco non si blocca mai.
+#
+# NOTE PER CHI VIENE DA C#:
+#   - FileAccess.open() ritorna null se il file non esiste — non lancia eccezioni.
+#     In C# useresti try/catch su File.ReadAllText(); qui controlli null ad ogni passo.
+#   - JSON.parse_string() ritorna Variant (può essere Dictionary, Array, o null).
+#     Devi verificare il tipo con "is" prima di usarlo.
+#   - I numeri in un JSON parsato diventano FLOAT in GDScript, non int.
+#     Occorre castare esplicitamente con int(v).
+func _load_level(level_id: int) -> BoardState:
+	var path := "res://data/levels/chapter_01.json"
+
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		push_warning("GameBoard: %s non trovato — uso fallback hardcoded." % path)
+		return _fallback_state()
+
+	var text  := file.get_as_text()
+	file.close()
+
+	# parse_string ritorna null se il testo non è JSON valido.
+	var data = JSON.parse_string(text)
+	if data == null or not data is Dictionary:
+		push_warning("GameBoard: JSON malformato in %s — uso fallback." % path)
+		return _fallback_state()
+
+	# data["levels"] è un Array di Dictionary — equivale a List<Dictionary> in C#.
+	# .get(key, default) è il null-safe accessor: come dict.GetValueOrDefault() in C#.
+	var levels: Array = data.get("levels", [])
+	for level_data in levels:
+		if int(level_data.get("id", -1)) != level_id:
+			continue
+
+		var raw: Array = level_data.get("initial_state", [])
+		if raw.size() != GRID_SIZE * GRID_SIZE:
+			push_warning("GameBoard: initial_state ha %d elementi (attesi %d)." \
+				% [raw.size(), GRID_SIZE * GRID_SIZE])
+			return _fallback_state()
+
+		# I valori nel JSON parsato sono float: int(v) li converte in interi.
+		# Equivalente di (int)jsonElement.GetDouble() in C# System.Text.Json.
+		var tiles: Array[int] = []
+		for v in raw:
+			tiles.append(int(v))
+
+		return BoardState.new(tiles, GRID_SIZE)
+
+	push_warning("GameBoard: livello id=%d non trovato in %s." % [level_id, path])
+	return _fallback_state()
+
+
+# Stato di emergenza: [1,2,3,4,5,6,7,0,8] — 1 mossa dalla soluzione.
+# Usato solo se il JSON non è disponibile o è corrotto.
+func _fallback_state() -> BoardState:
+	return BoardState.solved(GRID_SIZE).apply_move(7)
 
 
 func _setup_background() -> void:

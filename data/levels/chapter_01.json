@@ -1,0 +1,102 @@
+{
+	"chapter": 1,
+	"grid_size": 3,
+	"levels": [
+		{
+			"id": 1,
+			"title": "La Soglia",
+			"initial_state": [2, 0, 3, 1, 4, 6, 7, 5, 8],
+			"optimal_moves": 5,
+			"par_moves": 7,
+			"good_moves": 10
+		},
+		{
+			"id": 2,
+			"title": "Polvere Prima",
+			"initial_state": [2, 3, 0, 1, 4, 6, 7, 5, 8],
+			"optimal_moves": 6,
+			"par_moves": 8,
+			"good_moves": 12
+		},
+		{
+			"id": 3,
+			"title": "Il Primo Frammento",
+			"initial_state": [2, 3, 6, 1, 4, 0, 7, 5, 8],
+			"optimal_moves": 7,
+			"par_moves": 10,
+			"good_moves": 14
+		},
+		{
+			"id": 4,
+			"title": "Il Sigillo Spezzato",
+			"initial_state": [2, 3, 6, 1, 4, 8, 7, 5, 0],
+			"optimal_moves": 8,
+			"par_moves": 11,
+			"good_moves": 16
+		},
+		{
+			"id": 5,
+			"title": "Voci di Pietra",
+			"initial_state": [2, 3, 6, 1, 4, 8, 7, 0, 5],
+			"optimal_moves": 9,
+			"par_moves": 13,
+			"good_moves": 18
+		},
+		{
+			"id": 6,
+			"title": "Il Corridoio Sommerso",
+			"initial_state": [2, 3, 6, 1, 4, 8, 0, 7, 5],
+			"optimal_moves": 10,
+			"par_moves": 14,
+			"good_moves": 20
+		},
+		{
+			"id": 7,
+			"title": "Frammenti di un Nome",
+			"initial_state": [2, 3, 6, 0, 4, 8, 1, 7, 5],
+			"optimal_moves": 11,
+			"par_moves": 15,
+			"good_moves": 22
+		},
+		{
+			"id": 8,
+			"title": "La Lampada Spenta",
+			"initial_state": [0, 3, 6, 2, 4, 8, 1, 7, 5],
+			"optimal_moves": 12,
+			"par_moves": 17,
+			"good_moves": 24
+		},
+		{
+			"id": 9,
+			"title": "Ciò Che Rimase",
+			"initial_state": [3, 0, 6, 2, 4, 8, 1, 7, 5],
+			"optimal_moves": 13,
+			"par_moves": 18,
+			"good_moves": 26
+		},
+		{
+			"id": 10,
+			"title": "Il Margine del Foglio",
+			"initial_state": [3, 6, 0, 2, 4, 8, 1, 7, 5],
+			"optimal_moves": 14,
+			"par_moves": 20,
+			"good_moves": 28
+		},
+		{
+			"id": 11,
+			"title": "Eco Senza Origine",
+			"initial_state": [3, 6, 8, 2, 4, 0, 1, 7, 5],
+			"optimal_moves": 15,
+			"par_moves": 21,
+			"good_moves": 30
+		},
+		{
+			"id": 12,
+			"title": "La Prima Tavola",
+			"initial_state": [3, 6, 8, 2, 0, 4, 1, 7, 5],
+			"optimal_moves": 16,
+			"par_moves": 22,
+			"good_moves": 32
+		}
+	]
+}
