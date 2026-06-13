@@ -167,10 +167,12 @@ aumenta la Manhattan distance di esattamente 1. Se MD(stato) = K e il
 percorso ha lunghezza K, allora `optimal_moves = K` per la doppia
 disuguaglianza `MD ≤ optimal ≤ path_length`.
 
-Per i **Capitoli II–VI (4×4)** MD-increasing è stata verificata offline
-(BFS Python) ed è raggiungibile almeno fino a MD=34+, coprendo l'intero
-range 15–28 del Capitolo II senza fallback. Il ceiling reale è ben oltre 34.
-Per i capitoli con target >45 mosse circa, valutare pre-generazione offline.
+Per i **Capitoli II–VI (4×4)** MD-increasing è stata verificata in vivo:
+- BFS Python offline: raggiungibile almeno fino a MD=34+
+- Capitolo II (15–28): confermato, zero fallback
+- Capitolo III (28–42): confermato, ceiling > 42 su 4×4
+Per i capitoli con target >42 mosse, reverificare con `GenerateChapter0X.gd`:
+se compaiono SKIP nel log, il ceiling è stato raggiunto e servono fallback offline.
 
 **Nota implementativa:** il generatore `GenerateChapter02.gd` usa MD-increasing
 con retry: un percorso casuale può finire in dead end anche se il target è
@@ -255,7 +257,9 @@ dinamicamente dalla struttura dati aggiornata.
 | `GenerateChapter01.gd` | ✅ EditorScript rigenerabile con seed fisso |
 | `data/levels/chapter_02.json` | ✅ 20 livelli 4×4, optimal 15–28, MD-increasing con retry |
 | `GenerateChapter02.gd` | ✅ EditorScript rigenerabile con seed fisso |
-| Capitoli III–VI (4×4) | ⬜ prossimo step — MD-increasing valido fino a ~45 mosse |
+| `data/levels/chapter_03.json` | ✅ 20 livelli 4×4, optimal 28–42, ceiling MD-increasing > 42 |
+| `GenerateChapter03.gd` | ✅ EditorScript con rilevamento ceiling, seed fisso |
+| Capitoli IV–VI (4×4) | ⬜ prossimo step — MD-increasing valida, ceiling da riverificare >42 |
 | LevelSelect, ChapterSelect | ⬜ non iniziato |
 | Sistema stelle e mosse | ⬜ non iniziato |
 | Autoload (GameManager, ecc.) | ⬜ non iniziato |
