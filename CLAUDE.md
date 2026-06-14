@@ -257,6 +257,8 @@ dinamicamente dalla struttura dati aggiornata.
 | `PuzzleSolver` A* (core) | ✅ completo, limite nodi confermato ~30 mosse 4×4 |
 | `HintSolver` greedy (core) | ✅ completo, istantaneo su qualsiasi stato |
 | `GameBoard.tscn` + script | ✅ griglia cliccabile, tween, flash risoluzione; `@export chapter/level_id` |
+| `LevelLoader` (Autoload) | ✅ completo — carica JSON on-demand, cache in memoria, `get_level()` / `get_chapter_info()` |
+| `TestAllLevelsPlaythrough` | ✅ 111/111 livelli passati — playthrough 50 mosse su ogni livello, verifica sync UI |
 
 ### Dati livelli (tutti i 6 capitoli completati)
 
@@ -276,8 +278,7 @@ Ceiling MD-increasing su 4×4: **~51 stabile, 52 borderline** (timeout a 55+).
 
 | Componente | Note |
 |---|---|
-| `LevelLoader` (Autoload) | **prossimo step** — singleton che carica qualsiasi `chapter_XX.json` e fornisce livelli a `GameBoard`; base per le scene di navigazione |
-| `GameManager` (Autoload) | stato globale: capitolo corrente, monete, progressione |
+| `GameManager` (Autoload) | **prossimo step** — stato globale: capitolo corrente, monete, progressione |
 | `SaveManager` (Autoload) | salvataggio/caricamento su disco |
 | `AudioManager` (Autoload) | musica e SFX |
 | `ChapterSelect`, `LevelSelect`, `MainMenu` | dipendono da `LevelLoader` |
