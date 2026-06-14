@@ -256,9 +256,11 @@ dinamicamente dalla struttura dati aggiornata.
 | `BoardState` (core) | ✅ completo, testato |
 | `PuzzleSolver` A* (core) | ✅ completo, limite nodi confermato ~30 mosse 4×4 |
 | `HintSolver` greedy (core) | ✅ completo, istantaneo su qualsiasi stato |
-| `GameBoard.tscn` + script | ✅ griglia cliccabile, tween, flash risoluzione; `@export chapter/level_id` |
-| `LevelLoader` (Autoload) | ✅ completo — carica JSON on-demand, cache in memoria, `get_level()` / `get_chapter_info()` |
-| `TestAllLevelsPlaythrough` | ✅ 111/111 livelli passati — playthrough 50 mosse su ogni livello, verifica sync UI |
+| `LevelLoader` (Autoload) | ✅ completo — carica `chapter_0X.json` on-demand, cache in memoria, `get_level()` / `get_chapter_info()` |
+| `SaveManager` (Autoload) | ✅ completo — persistenza `user://save.json`, calcolo stelle, sblocco sequenziale, `save_level_result()` / `get_level_progress()` / `is_level_unlocked()` |
+| `GameBoard.tscn` + script | ✅ completo — griglia cliccabile `@export chapter/level_id`, tween, HUD (titolo + contatore mosse), calcolo stelle e salvataggio automatico a fine livello |
+| `TestAllLevelsPlaythrough` | ✅ 111/111 livelli passati — playthrough 50 mosse per livello, verifica invarianti sync UI/logica |
+| `TestSaveManager` | ✅ 9/9 test passati — salvataggio, miglioramento, persistenza su disco, sblocco sequenziale |
 
 ### Dati livelli (tutti i 6 capitoli completati)
 
@@ -278,11 +280,13 @@ Ceiling MD-increasing su 4×4: **~51 stabile, 52 borderline** (timeout a 55+).
 
 | Componente | Note |
 |---|---|
-| `GameManager` (Autoload) | **prossimo step** — stato globale: capitolo corrente, monete, progressione |
-| `SaveManager` (Autoload) | salvataggio/caricamento su disco |
+| `LevelSelect.tscn` | **prossimo step** — griglia livelli di un capitolo con stato (bloccato/completato/stelle); avvia `GameBoard` con chapter/level scelto invece degli `@export` statici; legge `LevelLoader` + `SaveManager` |
+| `ChapterSelect.tscn` | lista dei 6 capitoli; dipende da `SaveManager` per stato completamento |
+| `MainMenu.tscn` | schermata iniziale |
+| Overlay Level Complete | per ora solo print + flash; da costruire come scena separata |
+| Sistema hint UI | `HintSolver` esiste ma non è collegato a nessuna UI |
 | `AudioManager` (Autoload) | musica e SFX |
-| `ChapterSelect`, `LevelSelect`, `MainMenu` | dipendono da `LevelLoader` |
-| Sistema stelle/mosse a schermo | `par_moves`/`good_moves` esistono nei JSON ma non sono letti da `GameBoard` |
+| `GameManager` (Autoload) | stato globale: capitolo corrente, monete — valutare se necessario prima delle scene di navigazione |
 | Titoli evocativi Cap II–VI | placeholder "Livello X-N" — da sessione dedicata alla lore (stile: vedi `chapter_01.json`) |
 
 ---
