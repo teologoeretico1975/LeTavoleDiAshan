@@ -78,62 +78,40 @@ func _ready() -> void:
 
 
 # ---------------------------------------------------------------------------
-# Caricamento livello da JSON
+# Caricamento livello da JSON (tramite LevelLoader)
 # ---------------------------------------------------------------------------
 
-# Legge data/levels/chapter_XX.json e ritorna il BoardState del livello richiesto.
-# In caso di errore (file mancante, JSON malformato, id non trovato) ritorna un
-# fallback hardcoded così il gioco non si blocca mai.
+# Chiede i dati del livello a LevelLoader (Autoload) e costruisce il BoardState.
+# LevelLoader gestisce parsing, cache e warning — qui gestiamo solo la logica
+# di costruzione del BoardState e il fallback visivo.
 #
 # NOTE PER CHI VIENE DA C#:
-#   - FileAccess.open() ritorna null se il file non esiste — non lancia eccezioni.
-#     In C# useresti try/catch su File.ReadAllText(); qui controlli null ad ogni passo.
-#   - JSON.parse_string() ritorna Variant (può essere Dictionary, Array, o null).
-#     Devi verificare il tipo con "is" prima di usarlo.
-#   - I numeri in un JSON parsato diventano FLOAT in GDScript, non int.
-#     Occorre castare esplicitamente con int(v).
+#   - LevelLoader è un Autoload: accessibile come variabile globale, come se fosse
+#     una static class. Non serve "GetNode()" né import.
+#   - level_data.is_empty() è il modo idiomatico per controllare un Dictionary vuoto
+#     in GDScript — equivale a dict.Count == 0 in C#.
 func _load_level(p_chapter: int, p_level_id: int) -> BoardState:
-	var path := "res://data/levels/chapter_%02d.json" % p_chapter
+	var level_data: Dictionary = LevelLoader.get_level(p_chapter, p_level_id)
 
-	var file := FileAccess.open(path, FileAccess.READ)
-	if file == null:
-		push_warning("GameBoard: %s non trovato — uso fallback hardcoded." % path)
+	if level_data.is_empty():
+		push_warning("GameBoard: dati non disponibili per capitolo=%d id=%d — uso fallback." \
+			% [p_chapter, p_level_id])
 		return _fallback_state()
 
-	var text  := file.get_as_text()
-	file.close()
+	var json_grid_size: int = int(level_data.get("grid_size", 3))
+	var raw: Array = level_data.get("initial_state", [])
 
-	# parse_string ritorna null se il testo non è JSON valido.
-	var data = JSON.parse_string(text)
-	if data == null or not data is Dictionary:
-		push_warning("GameBoard: JSON malformato in %s — uso fallback." % path)
+	if raw.size() != json_grid_size * json_grid_size:
+		push_warning("GameBoard: initial_state ha %d elementi (attesi %d)." \
+			% [raw.size(), json_grid_size * json_grid_size])
 		return _fallback_state()
 
-	# data["levels"] è un Array di Dictionary — equivale a List<Dictionary> in C#.
-	# .get(key, default) è il null-safe accessor: come dict.GetValueOrDefault() in C#.
-	# grid_size viene letto dai metadati del JSON, non hardcoded.
-	var json_grid_size: int = int(data.get("grid_size", 3))
+	var tiles: Array[int] = []
+	for v in raw:
+		tiles.append(int(v))
 
-	var levels: Array = data.get("levels", [])
-	for level_data in levels:
-		if int(level_data.get("id", -1)) != p_level_id:
-			continue
-
-		var raw: Array = level_data.get("initial_state", [])
-		if raw.size() != json_grid_size * json_grid_size:
-			push_warning("GameBoard: initial_state ha %d elementi (attesi %d)." \
-				% [raw.size(), json_grid_size * json_grid_size])
-			return _fallback_state()
-
-		var tiles: Array[int] = []
-		for v in raw:
-			tiles.append(int(v))
-
-		_grid_size = json_grid_size
-		return BoardState.new(tiles, _grid_size)
-
-	push_warning("GameBoard: livello id=%d non trovato in %s." % [p_level_id, path])
-	return _fallback_state()
+	_grid_size = json_grid_size
+	return BoardState.new(tiles, _grid_size)
 
 
 # Stato di emergenza: [1,2,3,4,5,6,7,0,8] — 1 mossa dalla soluzione.
