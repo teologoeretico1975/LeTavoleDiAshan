@@ -77,6 +77,29 @@ func _ready() -> void:
 	_refresh_tiles()
 
 
+# Inizializza la board direttamente da dati grezzi, senza passare per LevelLoader.
+# Usato dai test automatici (EditorScript) dove l'Autoload non è disponibile,
+# e da qualsiasi contesto che abbia già i dati del livello pronti.
+func setup_for_test(p_tiles: Array[int], p_grid_size: int) -> void:
+	_grid_size = p_grid_size
+	_state    = BoardState.new(p_tiles, p_grid_size)
+	_build_board()
+	_refresh_tiles()
+
+
+# Esegue una mossa senza animazione — stessa logica della tween callback in
+# _try_move(), ma sincrona. Usato dai test dove non c'è frame loop.
+func apply_move_instant(tile_index: int) -> void:
+	if tile_index not in _state.valid_moves():
+		return
+	var blank_index: int = _state.blank_index
+	_state = _state.apply_move(tile_index)
+	var tmp: Panel = _tile_nodes[tile_index]
+	_tile_nodes[tile_index] = _tile_nodes[blank_index]
+	_tile_nodes[blank_index] = tmp
+	_refresh_tiles()
+
+
 # ---------------------------------------------------------------------------
 # Caricamento livello da JSON (tramite LevelLoader)
 # ---------------------------------------------------------------------------
