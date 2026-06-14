@@ -71,6 +71,7 @@ var _board_container: Control
 var _label_title: Label
 var _label_moves: Label
 var _label_coins: Label
+var _btn_hint: Button
 
 # Blocca l'input mentre un'animazione è in corso — evita di accodare mosse.
 var _is_animating: bool = false
@@ -117,6 +118,7 @@ func _ready() -> void:
 	_refresh_tiles()
 	_setup_hud()
 	_setup_back_button()
+	_setup_hint_button()
 	_build_level_complete_panel()
 
 
@@ -480,6 +482,7 @@ func _refresh_tiles() -> void:
 func _on_puzzle_solved() -> void:
 	# Lock permanente: nessuna mossa ulteriore accettata.
 	_is_solved = true
+	_refresh_hint_button()   # disabilita il pulsante hint
 
 	var stars := _compute_stars(_move_count)
 	var coins_earned: int = 0
@@ -760,6 +763,150 @@ func _on_overlay_next_pressed() -> void:
 		# Torna a LevelSelect dopo un breve delay per far leggere il messaggio.
 		await get_tree().create_timer(1.8).timeout
 		gm.goto_level_select(chapter)
+
+
+# ---------------------------------------------------------------------------
+# Hint
+# ---------------------------------------------------------------------------
+
+# Crea il pulsante Hint in basso a destra, sopra la label monete.
+# La label del pulsante è dinamica: mostra hint gratuiti rimanenti o costo.
+func _setup_hint_button() -> void:
+	_btn_hint = Button.new()
+	_btn_hint.name = "BtnHint"
+
+	var style_normal := StyleBoxFlat.new()
+	style_normal.bg_color = COL_TILE
+	style_normal.corner_radius_top_left     = 8
+	style_normal.corner_radius_top_right    = 8
+	style_normal.corner_radius_bottom_left  = 8
+	style_normal.corner_radius_bottom_right = 8
+	var style_hover := StyleBoxFlat.new()
+	style_hover.bg_color = COL_TILE.lightened(0.15)
+	style_hover.corner_radius_top_left     = 8
+	style_hover.corner_radius_top_right    = 8
+	style_hover.corner_radius_bottom_left  = 8
+	style_hover.corner_radius_bottom_right = 8
+	var style_disabled := StyleBoxFlat.new()
+	style_disabled.bg_color = Color("3a3000")
+	style_disabled.corner_radius_top_left     = 8
+	style_disabled.corner_radius_top_right    = 8
+	style_disabled.corner_radius_bottom_left  = 8
+	style_disabled.corner_radius_bottom_right = 8
+	_btn_hint.add_theme_stylebox_override("normal",   style_normal)
+	_btn_hint.add_theme_stylebox_override("hover",    style_hover)
+	_btn_hint.add_theme_stylebox_override("pressed",  style_hover)
+	_btn_hint.add_theme_stylebox_override("disabled", style_disabled)
+	_btn_hint.add_theme_color_override("font_color",          COL_TILE_TEXT)
+	_btn_hint.add_theme_color_override("font_disabled_color", Color("7a6010"))
+	_btn_hint.add_theme_font_size_override("font_size", 17)
+
+	# Posizionato in basso a destra — sotto la label monete.
+	_btn_hint.anchor_left   = 1.0
+	_btn_hint.anchor_right  = 1.0
+	_btn_hint.anchor_top    = 1.0
+	_btn_hint.anchor_bottom = 1.0
+	_btn_hint.offset_left   = -180.0
+	_btn_hint.offset_right  = -20.0
+	_btn_hint.offset_top    = -60.0
+	_btn_hint.offset_bottom = -20.0
+
+	add_child(_btn_hint)
+	_refresh_hint_button()
+	_btn_hint.pressed.connect(_on_hint_pressed)
+
+
+# Aggiorna il testo del pulsante in base allo stato corrente degli hint.
+# Chiamata dopo ogni uso di hint e dopo la risoluzione.
+func _refresh_hint_button() -> void:
+	if _btn_hint == null:
+		return
+
+	_btn_hint.disabled = _is_solved
+
+	var saver: Node = _get_saver()
+	if saver == null:
+		_btn_hint.text = "Hint (20 ✦)"
+		return
+
+	var free: int = saver.get_free_hints_remaining()
+	if free > 0:
+		_btn_hint.text = "Hint (Gratis %d/%d)" % [free, 3]
+	else:
+		_btn_hint.text = "Hint (20 ✦)"
+
+
+func _on_hint_pressed() -> void:
+	var saver: Node = _get_saver()
+	if saver == null:
+		return
+
+	var granted: bool = saver.use_hint()
+
+	if not granted:
+		# Saldo insufficiente — flash rosso sul pulsante come feedback visivo.
+		_flash_hint_button_denied()
+		return
+
+	# Aggiorna label monete e pulsante dopo l'uso.
+	_refresh_coins_label()
+	_refresh_hint_button()
+
+	# Chiedi la mossa suggerita a HintSolver.
+	var hint_solver := HintSolver.new()
+	var tile_index: int = hint_solver.suggest_move(_state)
+
+	# -1 = puzzle già risolto (non dovrebbe succedere con _is_solved attivo,
+	# ma gestiamo il caso per robustezza).
+	if tile_index < 0:
+		return
+
+	_flash_tile_hint(_tile_nodes[tile_index])
+
+
+# Flash rosso sul pulsante quando il giocatore non ha abbastanza monete.
+# Riusa il pattern tween già consolidato nel progetto.
+func _flash_hint_button_denied() -> void:
+	var original_style := StyleBoxFlat.new()
+	original_style.bg_color = COL_TILE
+	original_style.corner_radius_top_left     = 8
+	original_style.corner_radius_top_right    = 8
+	original_style.corner_radius_bottom_left  = 8
+	original_style.corner_radius_bottom_right = 8
+
+	var red_style := StyleBoxFlat.new()
+	red_style.bg_color = Color("8b0000")
+	red_style.corner_radius_top_left     = 8
+	red_style.corner_radius_top_right    = 8
+	red_style.corner_radius_bottom_left  = 8
+	red_style.corner_radius_bottom_right = 8
+
+	# Non possiamo animare StyleBox direttamente con tween_property —
+	# la sostituiamo con un callback manuale: rosso → originale dopo un delay.
+	_btn_hint.add_theme_stylebox_override("normal", red_style)
+	var tween := create_tween()
+	tween.tween_interval(0.35)
+	tween.tween_callback(func() -> void:
+		_btn_hint.add_theme_stylebox_override("normal", original_style)
+	)
+
+
+# Flash dorato su una singola tile suggerita dall'hint.
+# Stesso pattern di _play_solve_flash() ma circoscritto al pannello della tile.
+func _flash_tile_hint(p_panel: Panel) -> void:
+	var flash := ColorRect.new()
+	flash.color = Color(1.0, 0.85, 0.1, 0.0)
+	flash.set_anchors_preset(Control.PRESET_FULL_RECT)
+	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	p_panel.add_child(flash)
+
+	# Fade in → hold → fade out → rimuovi. Più lungo del flash di risoluzione
+	# così il giocatore ha il tempo di vedere quale tile muovere.
+	var tween := create_tween()
+	tween.tween_property(flash, "color:a", 0.75, 0.15)
+	tween.tween_interval(0.35)
+	tween.tween_property(flash, "color:a", 0.0,  0.25)
+	tween.tween_callback(flash.queue_free)
 
 
 # ---------------------------------------------------------------------------

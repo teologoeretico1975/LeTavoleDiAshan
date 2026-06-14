@@ -47,10 +47,18 @@ const STARS_2 := "good_moves"
 
 # Chiave radice nel JSON per il saldo monete — separata dalla struttura
 # capitolo/livello per semplicità di accesso.
-const COINS_KEY := "__coins__"
+const COINS_KEY      := "__coins__"
+const HINTS_USED_KEY := "__hints_used__"
 
 # Monete assegnate per stella al primo raggiungimento di quel record.
 const COINS_PER_STAR := 10
+
+# I primi N hint sono gratuiti (contatore persistente su tutto il gioco,
+# non per livello — incentiva l'esplorazione senza penalizzare i nuovi giocatori).
+const FREE_HINTS_TOTAL := 3
+
+# Costo in monete per ogni hint dopo aver esaurito quelli gratuiti.
+const HINT_COST := 20
 
 
 # ---------------------------------------------------------------------------
@@ -244,6 +252,45 @@ func is_chapter_unlocked(p_chapter: int) -> bool:
 			return false
 
 	return true
+
+
+# ---------------------------------------------------------------------------
+# API hint
+# ---------------------------------------------------------------------------
+
+# Ritorna quanti hint gratuiti rimangono (0 se tutti esauriti).
+func get_free_hints_remaining() -> int:
+	var used: int = int(_data.get(HINTS_USED_KEY, 0))
+	return max(0, FREE_HINTS_TOTAL - used)
+
+
+# True se il prossimo hint è gratuito.
+func is_hint_free() -> bool:
+	return get_free_hints_remaining() > 0
+
+
+# Tenta di usare un hint.
+# Ordine: prima hint gratuiti, poi monete.
+# Ritorna true se l'hint è stato concesso (gratis o pagato),
+# false se i gratuiti sono esauriti E le monete sono insufficienti.
+# In caso di false non modifica nulla.
+func use_hint() -> bool:
+	var free_remaining: int = get_free_hints_remaining()
+
+	if free_remaining > 0:
+		# Hint gratuito: incrementa solo il contatore, nessun addebito monete.
+		_data[HINTS_USED_KEY] = int(_data.get(HINTS_USED_KEY, 0)) + 1
+		_save_to_disk()
+		return true
+
+	# Hint a pagamento: tenta la sottrazione (spend_coins gestisce il caso saldo < costo).
+	if spend_coins(HINT_COST):
+		_data[HINTS_USED_KEY] = int(_data.get(HINTS_USED_KEY, 0)) + 1
+		# spend_coins() ha già chiamato _save_to_disk() — non duplichiamo.
+		return true
+
+	# Saldo insufficiente e nessun gratuito rimasto.
+	return false
 
 
 # Azzera tutto il progresso salvato (utile per debug/test).
