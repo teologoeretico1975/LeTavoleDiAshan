@@ -55,3 +55,9 @@ func goto_level_select(p_chapter: int) -> void:
 # Chiamato da LevelSelect (pulsante "< Capitoli").
 func goto_chapter_select() -> void:
 	get_tree().change_scene_to_file("res://scenes/ui/ChapterSelect.tscn")
+
+
+# Torna al menu principale.
+# Chiamato da ChapterSelect (pulsante "< Menu").
+func goto_main_menu() -> void:
+	get_tree().change_scene_to_file("res://scenes/ui/MainMenu.tscn")

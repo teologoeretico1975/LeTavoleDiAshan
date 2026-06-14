@@ -24,7 +24,7 @@ Il giocatore riordina le tessere numerate di una griglia (3×3 nei primi livelli
 
 ```
 scenes/
-├── ui/          # ChapterSelect, LevelSelect
+├── ui/          # MainMenu, ChapterSelect, LevelSelect
 └── game/        # GameBoard
 
 scripts/
@@ -56,4 +56,7 @@ Gli script di generazione sono in `scripts/tools/`.
 ## Sviluppo
 
 Godot 4.6 — aprire `project.godot` con l'editor Godot.
-La scena principale è `scenes/ui/ChapterSelect.tscn`.
+La scena principale è `scenes/ui/MainMenu.tscn`.
+
+**Loop di navigazione:**
+`MainMenu → ChapterSelect → LevelSelect → GameBoard → LevelSelect → ChapterSelect → MainMenu`

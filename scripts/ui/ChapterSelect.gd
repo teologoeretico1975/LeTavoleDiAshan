@@ -62,6 +62,23 @@ func _setup_background() -> void:
 
 
 func _setup_header() -> void:
+	var back_btn := Button.new()
+	back_btn.name = "BackBtn"
+	back_btn.text = "< Menu"
+	back_btn.add_theme_font_size_override("font_size", 18)
+	back_btn.add_theme_color_override("font_color", COL_GOLD)
+	var style_n := StyleBoxFlat.new()
+	style_n.bg_color = Color(0, 0, 0, 0)
+	var style_h := StyleBoxFlat.new()
+	style_h.bg_color = Color(1.0, 0.85, 0.1, 0.15)
+	back_btn.add_theme_stylebox_override("normal",  style_n)
+	back_btn.add_theme_stylebox_override("hover",   style_h)
+	back_btn.add_theme_stylebox_override("pressed", style_h)
+	back_btn.position = Vector2(16.0, 20.0)
+	back_btn.size     = Vector2(100.0, 36.0)
+	add_child(back_btn)
+	back_btn.pressed.connect(_on_back_to_menu)
+
 	var lbl := Label.new()
 	lbl.name = "LabelTitle"
 	lbl.text = "Le Tavole di Ashan"
@@ -212,3 +229,9 @@ func _on_chapter_pressed(ch: int) -> void:
 	var gm: Node = get_node_or_null("/root/GameManager")
 	if gm != null:
 		gm.goto_level_select(ch)
+
+
+func _on_back_to_menu() -> void:
+	var gm: Node = get_node_or_null("/root/GameManager")
+	if gm != null:
+		gm.goto_main_menu()
