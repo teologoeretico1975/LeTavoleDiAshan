@@ -45,6 +45,13 @@ const SAVE_PATH := "user://save.json"
 const STARS_3 := "par_moves"
 const STARS_2 := "good_moves"
 
+# Chiave radice nel JSON per il saldo monete — separata dalla struttura
+# capitolo/livello per semplicità di accesso.
+const COINS_KEY := "__coins__"
+
+# Monete assegnate per stella al primo raggiungimento di quel record.
+const COINS_PER_STAR := 10
+
 
 # ---------------------------------------------------------------------------
 # Stato in memoria
@@ -70,36 +77,81 @@ func _ready() -> void:
 # Registra il risultato di una partita completata.
 # Calcola le stelle confrontando moves_used con le soglie nel JSON del livello.
 # Salva solo se è un miglioramento (più stelle, o stesse stelle con meno mosse).
+# Assegna monete solo se le nuove stelle superano il record precedente.
 # Scrive su disco immediatamente dopo ogni aggiornamento.
 #
+# Ritorna le monete assegnate in questa partita (0 se nessun record battuto).
+#
 # Esempio d'uso:
-#   SaveManager.save_level_result(1, 3, 14)
-func save_level_result(p_chapter: int, p_level_id: int, p_moves_used: int) -> void:
+#   var coins_earned = SaveManager.save_level_result(1, 3, 14)
+func save_level_result(p_chapter: int, p_level_id: int, p_moves_used: int) -> int:
 	var level_data: Dictionary = _get_level_data_from_loader(p_chapter, p_level_id)
 	if level_data.is_empty():
 		push_warning("SaveManager: dati non trovati per capitolo=%d id=%d." \
 			% [p_chapter, p_level_id])
-		return
+		return 0
 
 	var stars := _compute_stars(p_moves_used, level_data)
 	var prev: Variant = get_level_progress(p_chapter, p_level_id)
+	var prev_stars: int = 0 if prev == null else int(prev.get("stars", 0))
 
 	# Non sovrascrivere se il risultato precedente è migliore.
 	# "Migliore" = più stelle; a parità di stelle, meno mosse.
 	if prev != null:
-		var prev_stars: int = prev.get("stars", 0)
-		var prev_best:  int = prev.get("best_moves", INF)
+		var prev_best: int = prev.get("best_moves", INF)
 		if prev_stars > stars:
-			return
+			return 0
 		if prev_stars == stars and prev_best <= p_moves_used:
-			return
+			return 0
 
 	_set_progress(p_chapter, p_level_id, {
 		"completed":  true,
 		"stars":      stars,
 		"best_moves": p_moves_used,
 	})
+
+	# Assegna monete solo se il record stelle è migliorato.
+	# Formula: nuove_stelle * COINS_PER_STAR (non il delta) — semplicità > precisione.
+	var coins_earned: int = 0
+	if stars > prev_stars:
+		coins_earned = stars * COINS_PER_STAR
+		add_coins(coins_earned)
+
 	_save_to_disk()
+	return coins_earned
+
+
+# ---------------------------------------------------------------------------
+# API monete
+# ---------------------------------------------------------------------------
+
+# Ritorna il saldo monete corrente del giocatore.
+func get_coins() -> int:
+	return int(_data.get(COINS_KEY, 0))
+
+
+# Aggiunge monete al saldo. Chiamato internamente da save_level_result
+# e potenzialmente da future fonti (daily puzzle, achievement).
+func add_coins(p_amount: int) -> void:
+	_data[COINS_KEY] = get_coins() + p_amount
+	# Nota: _save_to_disk() è chiamato dal chiamante (save_level_result) —
+	# non duplichiamo la scrittura qui per evitare doppi flush.
+
+
+# Sottrae monete se il saldo è sufficiente. Ritorna true se l'operazione
+# è riuscita, false se il saldo sarebbe andato sotto zero (nessuna modifica).
+# Chiamato quando il giocatore usa un hint o acquista un bonus.
+#
+# Esempio d'uso:
+#   if SaveManager.spend_coins(50):
+#       _activate_hint()
+func spend_coins(p_amount: int) -> bool:
+	var current: int = get_coins()
+	if current < p_amount:
+		return false
+	_data[COINS_KEY] = current - p_amount
+	_save_to_disk()
+	return true
 
 
 # Ritorna il progresso salvato per un livello, o null se mai giocato.

@@ -70,6 +70,7 @@ var _board_container: Control
 # Label HUD — aggiornate da _setup_hud() e durante il gioco.
 var _label_title: Label
 var _label_moves: Label
+var _label_coins: Label
 
 # Blocca l'input mentre un'animazione è in corso — evita di accodare mosse.
 var _is_animating: bool = false
@@ -260,12 +261,40 @@ func _setup_hud() -> void:
 	_label_moves.offset_bottom = 60.0
 	add_child(_label_moves)
 
+	# Saldo monete — sotto il contatore mosse, stesso lato destro.
+	_label_coins = Label.new()
+	_label_coins.name = "LabelCoins"
+	_label_coins.add_theme_font_size_override("font_size", 20)
+	_label_coins.add_theme_color_override("font_color", COL_TILE)
+	_label_coins.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_label_coins.mouse_filter         = Control.MOUSE_FILTER_IGNORE
+	_label_coins.anchor_left   = 1.0
+	_label_coins.anchor_right  = 1.0
+	_label_coins.anchor_top    = 0.0
+	_label_coins.anchor_bottom = 0.0
+	_label_coins.offset_left   = -200.0
+	_label_coins.offset_right  = -20.0
+	_label_coins.offset_top    = 62.0
+	_label_coins.offset_bottom = 92.0
+	add_child(_label_coins)
+	_refresh_coins_label()
+
 
 # Recupera SaveManager per path — stesso pattern di _get_loader().
 func _get_saver() -> Node:
 	if not is_inside_tree():
 		return null
 	return get_node_or_null("/root/SaveManager")
+
+
+# Aggiorna la label monete leggendo il saldo corrente da SaveManager.
+# Chiamata in _setup_hud() e dopo save_level_result().
+func _refresh_coins_label() -> void:
+	if _label_coins == null:
+		return
+	var saver: Node = _get_saver()
+	var coins: int = saver.get_coins() if saver != null else 0
+	_label_coins.text = "✦ %d" % coins
 
 
 # ---------------------------------------------------------------------------
@@ -453,17 +482,19 @@ func _on_puzzle_solved() -> void:
 	_is_solved = true
 
 	var stars := _compute_stars(_move_count)
+	var coins_earned: int = 0
 
 	var saver: Node = _get_saver()
 	if saver != null:
-		saver.save_level_result(chapter, level_id, _move_count)
+		coins_earned = saver.save_level_result(chapter, level_id, _move_count)
+		_refresh_coins_label()
 	else:
 		push_warning("GameBoard: SaveManager non disponibile, risultato non salvato.")
 
 	# Flash visivo breve, poi overlay. Il flash è opzionale ma dà feedback
 	# immediato prima che l'overlay appaia (il delay della reveal stelle lo giustifica).
 	_play_solve_flash()
-	_show_level_complete(stars)
+	_show_level_complete(stars, coins_earned)
 
 
 # Calcola le stelle in base alle soglie del livello corrente.
@@ -607,6 +638,16 @@ func _build_level_complete_panel() -> void:
 	lbl_moves.add_theme_color_override("font_color", COL_TILE)
 	vbox.add_child(lbl_moves)
 
+	# Monete guadagnate — visibile solo se è un record migliorato.
+	var lbl_coins := Label.new()
+	lbl_coins.name = "LabelCoins"
+	lbl_coins.text = ""
+	lbl_coins.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl_coins.add_theme_font_size_override("font_size", 18)
+	lbl_coins.add_theme_color_override("font_color", COL_TILE)
+	lbl_coins.visible = false
+	vbox.add_child(lbl_coins)
+
 	# Riga pulsanti.
 	var hbox := HBoxContainer.new()
 	hbox.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -649,17 +690,21 @@ func _make_overlay_button(p_text: String) -> Button:
 
 
 # Rende visibile l'overlay e avvia la rivelazione sequenziale delle stelle.
-func _show_level_complete(p_stars: int) -> void:
+func _show_level_complete(p_stars: int, p_coins_earned: int) -> void:
 	var par: int = int(_level_data.get("par_moves", 0))
 
-	# Aggiorna la label mosse/par prima di rendere visibile il pannello.
 	var lbl_moves := _level_complete_panel.get_node("Card/VBox/LabelMoves") as Label
 	lbl_moves.text = "Mosse: %d  ·  Par: %d" % [_move_count, par]
 
-	_level_complete_panel.visible = true
+	# Mostra monete guadagnate solo se è un record (coins_earned > 0).
+	var lbl_coins := _level_complete_panel.get_node("Card/VBox/LabelCoins") as Label
+	if p_coins_earned > 0:
+		lbl_coins.text = "+ %d monete" % p_coins_earned
+		lbl_coins.visible = true
+	else:
+		lbl_coins.visible = false
 
-	# Rivela le stelle una alla volta con un piccolo delay tra ciascuna.
-	# Usa tween_callback() con timer sintetici: ogni callback aspetta il precedente.
+	_level_complete_panel.visible = true
 	_reveal_stars(p_stars)
 
 
