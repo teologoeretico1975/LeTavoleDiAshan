@@ -109,12 +109,23 @@ func apply_move_instant(tile_index: int) -> void:
 # di costruzione del BoardState e il fallback visivo.
 #
 # NOTE PER CHI VIENE DA C#:
-#   - LevelLoader è un Autoload: accessibile come variabile globale, come se fosse
-#     una static class. Non serve "GetNode()" né import.
-#   - level_data.is_empty() è il modo idiomatico per controllare un Dictionary vuoto
-#     in GDScript — equivale a dict.Count == 0 in C#.
+#   - Usiamo get_node_or_null("/root/LevelLoader") invece del nome globale diretto.
+#     Motivo: gli EditorScript ricompilano i file .gd in contesto editor dove gli
+#     Autoload non sono inizializzati come identificatori globali — "LevelLoader"
+#     risulterebbe sconosciuto a compile-time e causerebbe un errore di parsing.
+#     La ricerca per percorso ("/root/LevelLoader") è una stringa: non viene
+#     risolta dal compilatore, quindi funziona in entrambi i contesti.
+#   - In game context is_inside_tree() è true e il nodo esiste → funziona normalmente.
+#   - In EditorScript context is_inside_tree() è false → _get_loader() ritorna null
+#     e _load_level() usa il fallback. Il test usa setup_for_test() e non passa
+#     mai per _load_level(), quindi non è un problema.
 func _load_level(p_chapter: int, p_level_id: int) -> BoardState:
-	var level_data: Dictionary = LevelLoader.get_level(p_chapter, p_level_id)
+	var loader: Node = _get_loader()
+	if loader == null:
+		push_warning("GameBoard: LevelLoader non disponibile — usa setup_for_test() in contesto editor.")
+		return _fallback_state()
+
+	var level_data: Dictionary = loader.get_level(p_chapter, p_level_id)
 
 	if level_data.is_empty():
 		push_warning("GameBoard: dati non disponibili per capitolo=%d id=%d — uso fallback." \
@@ -141,6 +152,17 @@ func _load_level(p_chapter: int, p_level_id: int) -> BoardState:
 # Usato solo se il JSON non è disponibile o è corrotto.
 func _fallback_state() -> BoardState:
 	return BoardState.solved(_grid_size).apply_move(7)
+
+
+# Recupera il nodo LevelLoader dal percorso assoluto nell'albero di scena.
+# Ritorna null se non siamo nel game tree (es. EditorScript, unit test).
+# Il percorso stringa evita il riferimento diretto al nome globale dell'Autoload,
+# che causa errori di compilazione nei contesti editor dove i singleton non
+# sono ancora inizializzati.
+func _get_loader() -> Node:
+	if not is_inside_tree():
+		return null
+	return get_node_or_null("/root/LevelLoader")
 
 
 func _setup_background() -> void:
