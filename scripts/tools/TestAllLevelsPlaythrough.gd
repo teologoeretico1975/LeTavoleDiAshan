@@ -1,3 +1,4 @@
+@tool
 # scripts/tools/TestAllLevelsPlaythrough.gd
 #
 # Test automatico di playthrough su tutti i livelli di tutti i capitoli.
