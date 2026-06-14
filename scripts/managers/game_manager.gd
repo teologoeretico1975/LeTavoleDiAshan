@@ -49,3 +49,9 @@ func goto_game_board(p_chapter: int, p_level: int) -> void:
 func goto_level_select(p_chapter: int) -> void:
 	selected_chapter = p_chapter
 	get_tree().change_scene_to_file("res://scenes/ui/LevelSelect.tscn")
+
+
+# Torna alla schermata di selezione capitolo.
+# Chiamato da LevelSelect (pulsante "< Capitoli").
+func goto_chapter_select() -> void:
+	get_tree().change_scene_to_file("res://scenes/ui/ChapterSelect.tscn")

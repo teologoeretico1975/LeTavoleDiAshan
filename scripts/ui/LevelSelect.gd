@@ -91,9 +91,7 @@ func _setup_header() -> void:
 	var loader: Node = _get_loader()
 	var chapter_title: String = "Capitolo %d" % chapter
 	if loader != null:
-		var info: Dictionary = loader.get_chapter_info(chapter)
-		if not info.is_empty():
-			chapter_title = info.get("title", chapter_title)
+		chapter_title = loader.get_chapter_title(chapter)
 
 	# Label titolo capitolo — centrata in alto.
 	var lbl := Label.new()
@@ -269,8 +267,9 @@ func _on_level_pressed(lvl_id: int) -> void:
 
 
 func _on_back_to_chapters() -> void:
-	# ChapterSelect non ancora implementato — placeholder.
-	push_warning("LevelSelect: ChapterSelect non ancora implementato.")
+	var gm: Node = get_node_or_null("/root/GameManager")
+	if gm != null:
+		gm.goto_chapter_select()
 
 
 # ---------------------------------------------------------------------------

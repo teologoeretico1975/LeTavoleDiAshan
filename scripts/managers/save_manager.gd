@@ -135,6 +135,65 @@ func is_level_unlocked(p_chapter: int, p_level_id: int) -> bool:
 	return prev.get("completed", false)
 
 
+# Ritorna il progresso aggregato di un capitolo:
+#   completed_levels: quanti livelli hanno completed=true
+#   total_levels:     numero totale livelli del capitolo (da LevelLoader)
+#   total_stars:      stelle accumulate su tutti i livelli completati
+#   max_stars:        total_levels * 3 (massimo ottenibile)
+#
+# Esempio d'uso:
+#   var p = SaveManager.get_chapter_progress(1)
+#   label.text = "%d/%d livelli · %d/%d stelle" % [p.completed_levels, p.total_levels, ...]
+func get_chapter_progress(p_chapter: int) -> Dictionary:
+	var loader: Node = get_node_or_null("/root/LevelLoader")
+	var total_levels: int = 0
+	if loader != null:
+		var info: Dictionary = loader.get_chapter_info(p_chapter)
+		total_levels = int(info.get("level_count", 0))
+
+	var completed_levels: int = 0
+	var total_stars:      int = 0
+
+	for lvl_id: int in range(1, total_levels + 1):
+		var prog: Variant = get_level_progress(p_chapter, lvl_id)
+		if prog != null and prog.get("completed", false):
+			completed_levels += 1
+			total_stars      += int(prog.get("stars", 0))
+
+	return {
+		"completed_levels": completed_levels,
+		"total_levels":     total_levels,
+		"total_stars":      total_stars,
+		"max_stars":        total_levels * 3,
+	}
+
+
+# Capitolo 1 sempre sbloccato.
+# Capitolo N sbloccato se TUTTI i livelli del capitolo N-1 sono completati.
+#
+# Esempio d'uso:
+#   if SaveManager.is_chapter_unlocked(3): ...
+func is_chapter_unlocked(p_chapter: int) -> bool:
+	if p_chapter <= 1:
+		return true
+
+	var loader: Node = get_node_or_null("/root/LevelLoader")
+	if loader == null:
+		return false
+
+	var info: Dictionary = loader.get_chapter_info(p_chapter - 1)
+	var total: int = int(info.get("level_count", 0))
+	if total == 0:
+		return false
+
+	for lvl_id: int in range(1, total + 1):
+		var prog: Variant = get_level_progress(p_chapter - 1, lvl_id)
+		if prog == null or not prog.get("completed", false):
+			return false
+
+	return true
+
+
 # Azzera tutto il progresso salvato (utile per debug/test).
 func reset_all() -> void:
 	_data = {}

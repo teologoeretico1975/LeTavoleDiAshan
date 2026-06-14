@@ -30,6 +30,10 @@ extends Node
 # Viene popolato on-demand: il capitolo 3 non viene mai caricato se non richiesto.
 var _cache: Dictionary = {}
 
+# Cache del file chapters.json: { "1": "Il Risveglio", … }
+# Caricata la prima volta che serve, poi tenuta in memoria.
+var _chapter_titles: Dictionary = {}
+
 
 # ---------------------------------------------------------------------------
 # API pubblica
@@ -81,6 +85,16 @@ func get_chapter_info(p_chapter: int) -> Dictionary:
 	}
 
 
+# Ritorna il titolo narrativo di un capitolo (es. "Il Risveglio" per capitolo 1).
+# Legge data/chapters/chapters.json la prima volta, poi usa la cache.
+# Ritorna "Capitolo N" come fallback se il file non esiste o la chiave manca.
+func get_chapter_title(p_chapter: int) -> String:
+	if _chapter_titles.is_empty():
+		_load_chapter_titles()
+	var key := str(p_chapter)
+	return _chapter_titles.get(key, "Capitolo %d" % p_chapter)
+
+
 # ---------------------------------------------------------------------------
 # Caricamento e cache
 # ---------------------------------------------------------------------------
@@ -111,3 +125,17 @@ func _load_chapter(p_chapter: int) -> Dictionary:
 
 	_cache[p_chapter] = data
 	return data
+
+
+func _load_chapter_titles() -> void:
+	const PATH := "res://data/chapters/chapters.json"
+	var file := FileAccess.open(PATH, FileAccess.READ)
+	if file == null:
+		push_warning("LevelLoader: %s non trovato." % PATH)
+		return
+	var data = JSON.parse_string(file.get_as_text())
+	file.close()
+	if data == null or not data is Dictionary:
+		push_warning("LevelLoader: JSON malformato in %s." % PATH)
+		return
+	_chapter_titles = data
