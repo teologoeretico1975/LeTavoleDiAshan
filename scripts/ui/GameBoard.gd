@@ -74,6 +74,16 @@ var _label_moves: Label
 # Blocca l'input mentre un'animazione è in corso — evita di accodare mosse.
 var _is_animating: bool = false
 
+# Lock permanente dopo la risoluzione del puzzle — semantica diversa da
+# _is_animating (temporaneo). Impostato a true in _on_puzzle_solved() e
+# mai resettato: il giocatore non deve poter continuare a muovere le tile.
+var _is_solved: bool = false
+
+# Riferimento all'overlay di fine livello — mostrato da _on_puzzle_solved().
+var _level_complete_panel: Control
+# Riferimento al pulsante "Avanti" — disabilitato se è l'ultimo livello.
+var _btn_next: Button
+
 
 # ---------------------------------------------------------------------------
 # Inizializzazione
@@ -106,6 +116,7 @@ func _ready() -> void:
 	_refresh_tiles()
 	_setup_hud()
 	_setup_back_button()
+	_build_level_complete_panel()
 
 
 # Inizializza la board direttamente da dati grezzi, senza passare per LevelLoader.
@@ -340,7 +351,7 @@ func _make_tile(board_index: int) -> Panel:
 # ---------------------------------------------------------------------------
 
 func _on_tile_input(event: InputEvent, panel: Panel) -> void:
-	if _is_animating:
+	if _is_animating or _is_solved:
 		return
 
 	if not event is InputEventMouseButton:
@@ -436,9 +447,11 @@ func _refresh_tiles() -> void:
 # ---------------------------------------------------------------------------
 
 # Chiamata una volta sola quando _state.is_solved() diventa true.
-# Ordine: salva prima (così il dato è persistito anche se qualcosa crashasse dopo),
-# poi stampa, poi avvia l'animazione visiva.
+# Ordine: lock input → salva → mostra overlay.
 func _on_puzzle_solved() -> void:
+	# Lock permanente: nessuna mossa ulteriore accettata.
+	_is_solved = true
+
 	var stars := _compute_stars(_move_count)
 
 	var saver: Node = _get_saver()
@@ -447,9 +460,10 @@ func _on_puzzle_solved() -> void:
 	else:
 		push_warning("GameBoard: SaveManager non disponibile, risultato non salvato.")
 
-	print("Livello completato! Mosse: %d, Stelle: %d" % [_move_count, stars])
-
+	# Flash visivo breve, poi overlay. Il flash è opzionale ma dà feedback
+	# immediato prima che l'overlay appaia (il delay della reveal stelle lo giustifica).
 	_play_solve_flash()
+	_show_level_complete(stars)
 
 
 # Calcola le stelle in base alle soglie del livello corrente.
@@ -489,6 +503,218 @@ func _play_solve_flash() -> void:
 	# queue_free() rimuove il nodo dal albero alla fine del frame — come Dispose() in C#.
 	# Passarlo direttamente come Callable funziona perché è un metodo dell'oggetto flash.
 	tween.tween_callback(flash.queue_free)
+
+
+# ---------------------------------------------------------------------------
+# Overlay Level Complete
+# ---------------------------------------------------------------------------
+
+# Costruisce il pannello di fine livello e lo aggiunge come ultimo figlio
+# (quindi in cima allo stack visivo). Rimane hidden=true fino alla risoluzione.
+#
+# Struttura nodi:
+#   _level_complete_panel (Control, full-rect, MOUSE_FILTER_STOP)
+#     ├─ ColorRect  ← sfondo semi-trasparente, blocca visivamente la board
+#     └─ Panel      ← card centrata
+#          └─ VBoxContainer
+#               ├─ Label "Livello completato!"
+#               ├─ Label stelle  ← animata da _reveal_stars()
+#               ├─ Label "Mosse: X / Par: Y"
+#               └─ HBoxContainer
+#                    ├─ Button "< Mappa"
+#                    └─ Button "Avanti →"
+func _build_level_complete_panel() -> void:
+	_level_complete_panel = Control.new()
+	_level_complete_panel.name = "LevelCompletePanel"
+	_level_complete_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
+	# MOUSE_FILTER_STOP: l'overlay assorbe tutti gli eventi mouse.
+	# Anche se _is_solved blocca _try_move(), questo impedisce qualsiasi
+	# propagazione ai nodi sottostanti — doppia sicurezza.
+	_level_complete_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	_level_complete_panel.visible = false
+	add_child(_level_complete_panel)
+
+	# Sfondo scuro semi-trasparente — oscura la board senza nasconderla.
+	var bg := ColorRect.new()
+	bg.color = Color(0.0, 0.0, 0.0, 0.72)
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_level_complete_panel.add_child(bg)
+
+	# Card centrale: Panel con angoli arrotondati.
+	var card := Panel.new()
+	card.name = "Card"
+	var card_style := StyleBoxFlat.new()
+	card_style.bg_color = Color("1a1000")
+	card_style.border_color = COL_TILE
+	card_style.border_width_left   = 2
+	card_style.border_width_right  = 2
+	card_style.border_width_top    = 2
+	card_style.border_width_bottom = 2
+	card_style.corner_radius_top_left     = 16
+	card_style.corner_radius_top_right    = 16
+	card_style.corner_radius_bottom_left  = 16
+	card_style.corner_radius_bottom_right = 16
+	card.add_theme_stylebox_override("panel", card_style)
+	# Centra la card: 400×300 px, ancorata al centro dello schermo.
+	card.anchor_left   = 0.5
+	card.anchor_right  = 0.5
+	card.anchor_top    = 0.5
+	card.anchor_bottom = 0.5
+	card.offset_left   = -200.0
+	card.offset_right  =  200.0
+	card.offset_top    = -170.0
+	card.offset_bottom =  170.0
+	_level_complete_panel.add_child(card)
+
+	# VBoxContainer con tutto il contenuto della card.
+	var vbox := VBoxContainer.new()
+	vbox.name = "VBox"
+	vbox.set_anchors_preset(Control.PRESET_FULL_RECT)
+	vbox.add_theme_constant_override("separation", 16)
+	# Padding interno tramite offset — VBoxContainer non ha padding nativo.
+	vbox.offset_left   =  24.0
+	vbox.offset_right  = -24.0
+	vbox.offset_top    =  24.0
+	vbox.offset_bottom = -24.0
+	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	card.add_child(vbox)
+
+	# Titolo.
+	var lbl_title := Label.new()
+	lbl_title.name = "LabelTitle"
+	lbl_title.text = "Livello completato!"
+	lbl_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl_title.add_theme_font_size_override("font_size", 26)
+	lbl_title.add_theme_color_override("font_color", COL_TILE)
+	vbox.add_child(lbl_title)
+
+	# Stelle — testo inizialmente vuoto, rivelato da _reveal_stars().
+	var lbl_stars := Label.new()
+	lbl_stars.name = "LabelStars"
+	lbl_stars.text = ""
+	lbl_stars.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl_stars.add_theme_font_size_override("font_size", 48)
+	lbl_stars.add_theme_color_override("font_color", COL_TILE)
+	vbox.add_child(lbl_stars)
+
+	# Mosse / Par.
+	var lbl_moves := Label.new()
+	lbl_moves.name = "LabelMoves"
+	lbl_moves.text = ""   # popolato da _show_level_complete()
+	lbl_moves.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl_moves.add_theme_font_size_override("font_size", 18)
+	lbl_moves.add_theme_color_override("font_color", COL_TILE)
+	vbox.add_child(lbl_moves)
+
+	# Riga pulsanti.
+	var hbox := HBoxContainer.new()
+	hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	hbox.add_theme_constant_override("separation", 24)
+	vbox.add_child(hbox)
+
+	var btn_map := _make_overlay_button("< Mappa")
+	btn_map.pressed.connect(_on_overlay_map_pressed)
+	hbox.add_child(btn_map)
+
+	# Salva il riferimento a "Avanti" per poterlo disabilitare se è l'ultimo livello.
+	_btn_next = _make_overlay_button("Avanti →")
+	_btn_next.pressed.connect(_on_overlay_next_pressed)
+	hbox.add_child(_btn_next)
+
+
+# Crea un Button con lo stile oro usato nell'overlay.
+func _make_overlay_button(p_text: String) -> Button:
+	var btn := Button.new()
+	btn.text = p_text
+	btn.add_theme_font_size_override("font_size", 20)
+	btn.add_theme_color_override("font_color", COL_TILE_TEXT)
+	var s_normal := StyleBoxFlat.new()
+	s_normal.bg_color = COL_TILE
+	s_normal.corner_radius_top_left     = 8
+	s_normal.corner_radius_top_right    = 8
+	s_normal.corner_radius_bottom_left  = 8
+	s_normal.corner_radius_bottom_right = 8
+	var s_hover := StyleBoxFlat.new()
+	s_hover.bg_color = COL_TILE.lightened(0.15)
+	s_hover.corner_radius_top_left     = 8
+	s_hover.corner_radius_top_right    = 8
+	s_hover.corner_radius_bottom_left  = 8
+	s_hover.corner_radius_bottom_right = 8
+	btn.add_theme_stylebox_override("normal",  s_normal)
+	btn.add_theme_stylebox_override("hover",   s_hover)
+	btn.add_theme_stylebox_override("pressed", s_hover)
+	btn.custom_minimum_size = Vector2(130.0, 44.0)
+	return btn
+
+
+# Rende visibile l'overlay e avvia la rivelazione sequenziale delle stelle.
+func _show_level_complete(p_stars: int) -> void:
+	var par: int = int(_level_data.get("par_moves", 0))
+
+	# Aggiorna la label mosse/par prima di rendere visibile il pannello.
+	var lbl_moves := _level_complete_panel.get_node("Card/VBox/LabelMoves") as Label
+	lbl_moves.text = "Mosse: %d  ·  Par: %d" % [_move_count, par]
+
+	_level_complete_panel.visible = true
+
+	# Rivela le stelle una alla volta con un piccolo delay tra ciascuna.
+	# Usa tween_callback() con timer sintetici: ogni callback aspetta il precedente.
+	_reveal_stars(p_stars)
+
+
+# Rivela le stelle sequenzialmente: prima mostra le vuote, poi le aggiunge una ad una.
+# Usa una serie di tween_callback() concatenati — ogni step aspetta il precedente.
+func _reveal_stars(p_stars: int) -> void:
+	var lbl := _level_complete_panel.get_node("Card/VBox/LabelStars") as Label
+	# Parte da tre stelle vuote.
+	lbl.text = "☆☆☆"
+
+	# Sequenza: dopo 0.3s prima stella, poi 0.25s per ciascuna successiva.
+	# tween_interval() inserisce una pausa nella sequenza senza bisogno di Timer.
+	var tween := create_tween()
+	for i: int in p_stars:
+		tween.tween_interval(0.3 if i == 0 else 0.25)
+		# La lambda cattura `i` — ma qui i non muta tra un callback e l'altro
+		# perché ogni iterazione crea una nuova closure con il valore corrente.
+		var stars_so_far: int = i + 1
+		tween.tween_callback(func() -> void:
+			lbl.text = "★".repeat(stars_so_far) + "☆".repeat(3 - stars_so_far)
+		)
+
+
+# ---------------------------------------------------------------------------
+# Handler pulsanti overlay
+# ---------------------------------------------------------------------------
+
+func _on_overlay_map_pressed() -> void:
+	var gm: Node = get_node_or_null("/root/GameManager")
+	if gm != null:
+		gm.goto_level_select(chapter)
+
+
+func _on_overlay_next_pressed() -> void:
+	var gm: Node = get_node_or_null("/root/GameManager")
+	if gm == null:
+		return
+
+	# Verifica se esiste un livello successivo nel capitolo corrente.
+	var loader: Node = get_node_or_null("/root/LevelLoader")
+	var level_count: int = 0
+	if loader != null:
+		var info: Dictionary = loader.get_chapter_info(chapter)
+		level_count = int(info.get("level_count", 0))
+
+	if level_id < level_count:
+		gm.goto_game_board(chapter, level_id + 1)
+	else:
+		# Ultimo livello del capitolo: placeholder fino a schermata dedicata.
+		var lbl_title := _level_complete_panel.get_node("Card/VBox/LabelTitle") as Label
+		lbl_title.text = "Capitolo completato!"
+		_btn_next.disabled = true
+		# Torna a LevelSelect dopo un breve delay per far leggere il messaggio.
+		await get_tree().create_timer(1.8).timeout
+		gm.goto_level_select(chapter)
 
 
 # ---------------------------------------------------------------------------
