@@ -52,6 +52,13 @@ const COL_TILE_TEXT := Color("1a1000")  # testo scuro sul fondo dorato
 # Teniamo un riferimento all'oggetto corrente — come una variabile puntatore in C#.
 var _state: BoardState
 
+# Dati grezzi del livello dal JSON: title, par_moves, good_moves, ecc.
+# Popolato da _load_level() e usato da _setup_hud() e _on_puzzle_solved().
+var _level_data: Dictionary = {}
+
+# Contatore mosse dell'utente nella partita corrente.
+var _move_count: int = 0
+
 # Array di Panel, uno per posizione nella griglia (0..8 per un 3x3).
 # INVARIANTE: _tile_nodes[i] è sempre il nodo visivo per la posizione board i.
 # Manteniamo questo invariante facendo swap dopo ogni mossa animata.
@@ -59,6 +66,10 @@ var _tile_nodes: Array
 
 # Riferimento al container dei tile, usato per il flash di risoluzione.
 var _board_container: Control
+
+# Label HUD — aggiornate da _setup_hud() e durante il gioco.
+var _label_title: Label
+var _label_moves: Label
 
 # Blocca l'input mentre un'animazione è in corso — evita di accodare mosse.
 var _is_animating: bool = false
@@ -85,6 +96,7 @@ func _ready() -> void:
 
 	_build_board()
 	_refresh_tiles()
+	_setup_hud()
 
 
 # Inizializza la board direttamente da dati grezzi, senza passare per LevelLoader.
@@ -154,7 +166,10 @@ func _load_level(p_chapter: int, p_level_id: int) -> BoardState:
 	for v in raw:
 		tiles.append(int(v))
 
-	_grid_size = json_grid_size
+	# Salva i dati completi del livello — usati da _setup_hud() (title) e
+	# _on_puzzle_solved() (par_moves, good_moves per il calcolo stelle).
+	_level_data  = level_data
+	_grid_size   = json_grid_size
 	return BoardState.new(tiles, _grid_size)
 
 
@@ -181,6 +196,56 @@ func _setup_background() -> void:
 	# Ancora il ColorRect a tutto il genitore — come Background="..." sul root in WPF.
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
+
+
+# Costruisce le label HUD (titolo e contatore mosse) sopra la griglia.
+# Chiamata DOPO _load_level() perché legge _level_data["title"].
+#
+# NOTE PER CHI VIENE DA C#/WPF:
+#   - anchor_left/right/top/bottom definiscono il punto di riferimento nel genitore
+#     (0 = bordo sinistro/superiore, 1 = bordo destro/inferiore).
+#   - offset_* sono distanze in pixel dal punto di ancoraggio.
+#   - Label titolo: ancorata al bordo superiore-sinistro (anchor = 0,0) con margine.
+#   - Label mosse: ancorata al bordo superiore-destro (anchor_left/right = 1) con
+#     offset negativi per rientrare dal bordo — equivalente di Right/Top margin in WPF.
+func _setup_hud() -> void:
+	# Titolo del livello — sottile, in alto a sinistra.
+	_label_title = Label.new()
+	_label_title.name = "LabelTitle"
+	_label_title.text = _level_data.get("title", "")
+	_label_title.add_theme_font_size_override("font_size", 22)
+	_label_title.add_theme_color_override("font_color", COL_TILE)
+	_label_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# Position con anchor default (0,0) = offset in pixel dall'angolo superiore-sinistro.
+	_label_title.position = Vector2(20.0, 20.0)
+	add_child(_label_title)
+
+	# Contatore mosse — prominente, in alto a destra.
+	_label_moves = Label.new()
+	_label_moves.name = "LabelMoves"
+	_label_moves.text = "Mosse: 0"
+	_label_moves.add_theme_font_size_override("font_size", 28)
+	_label_moves.add_theme_color_override("font_color", COL_TILE)
+	_label_moves.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_label_moves.mouse_filter         = Control.MOUSE_FILTER_IGNORE
+	# Ancora al bordo destro: anchor_left = anchor_right = 1 → il punto di riferimento
+	# è il bordo destro del genitore. offset negativi = rientro verso sinistra.
+	_label_moves.anchor_left   = 1.0
+	_label_moves.anchor_right  = 1.0
+	_label_moves.anchor_top    = 0.0
+	_label_moves.anchor_bottom = 0.0
+	_label_moves.offset_left   = -200.0
+	_label_moves.offset_right  = -20.0
+	_label_moves.offset_top    = 20.0
+	_label_moves.offset_bottom = 60.0
+	add_child(_label_moves)
+
+
+# Recupera SaveManager per path — stesso pattern di _get_loader().
+func _get_saver() -> Node:
+	if not is_inside_tree():
+		return null
+	return get_node_or_null("/root/SaveManager")
 
 
 # ---------------------------------------------------------------------------
@@ -317,10 +382,16 @@ func _try_move(tile_index: int) -> void:
 		_tile_nodes[blank_index] = tmp
 
 		_refresh_tiles()
+
+		# Aggiorna contatore mosse e label HUD.
+		_move_count += 1
+		if _label_moves != null:
+			_label_moves.text = "Mosse: %d" % _move_count
+
 		_is_animating = false
 
 		if _state.is_solved():
-			_play_solve_flash()
+			_on_puzzle_solved()
 	)
 
 
@@ -349,6 +420,40 @@ func _refresh_tiles() -> void:
 		else:
 			panel.visible = true
 			label.text = str(val)
+
+
+# ---------------------------------------------------------------------------
+# Risoluzione puzzle
+# ---------------------------------------------------------------------------
+
+# Chiamata una volta sola quando _state.is_solved() diventa true.
+# Ordine: salva prima (così il dato è persistito anche se qualcosa crashasse dopo),
+# poi stampa, poi avvia l'animazione visiva.
+func _on_puzzle_solved() -> void:
+	var stars := _compute_stars(_move_count)
+
+	var saver: Node = _get_saver()
+	if saver != null:
+		saver.save_level_result(chapter, level_id, _move_count)
+	else:
+		push_warning("GameBoard: SaveManager non disponibile, risultato non salvato.")
+
+	print("Livello completato! Mosse: %d, Stelle: %d" % [_move_count, stars])
+
+	_play_solve_flash()
+
+
+# Calcola le stelle in base alle soglie del livello corrente.
+# Stessa logica di SaveManager._compute_stars() — duplicata intenzionalmente
+# per non dipendere dall'Autoload solo per ottenere il valore da stampare.
+func _compute_stars(p_moves: int) -> int:
+	var par:  int = int(_level_data.get("par_moves",  INF))
+	var good: int = int(_level_data.get("good_moves", INF))
+	if p_moves <= par:
+		return 3
+	if p_moves <= good:
+		return 2
+	return 1
 
 
 # ---------------------------------------------------------------------------
