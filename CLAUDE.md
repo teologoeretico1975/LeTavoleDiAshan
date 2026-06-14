@@ -259,10 +259,11 @@ dinamicamente dalla struttura dati aggiornata.
 | `LevelLoader` (Autoload) | ✅ completo — carica `chapter_0X.json` on-demand, cache in memoria; `get_level()` / `get_chapter_info()` / `get_chapter_title()` |
 | `SaveManager` (Autoload) | ✅ completo — persistenza `user://save.json`, calcolo stelle, sblocco sequenziale livelli e capitoli; `save_level_result()` / `get_level_progress()` / `is_level_unlocked()` / `get_chapter_progress()` / `is_chapter_unlocked()` |
 | `GameManager` (Autoload) | ✅ completo — blackboard per navigazione tra scene (`selected_chapter`, `selected_level`); `goto_game_board()` / `goto_level_select()` / `goto_chapter_select()` / `goto_main_menu()` |
+| `SaveManager` (Autoload) | ✅ completo — persistenza `user://save.json`; stelle, sblocco livelli/capitoli, monete (`get_coins` / `add_coins` / `spend_coins`), hint (`is_hint_free` / `get_free_hints_remaining` / `use_hint`); primi 3 hint gratuiti, poi 20 monete cadauno |
 | `MainMenu.tscn` + script | ✅ completo — titolo, tagline, pulsante "Inizia"; **Main Scene del progetto** |
 | `ChapterSelect.tscn` + script | ✅ completo — lista verticale 6 capitoli con titolo narrativo, progresso (livelli/stelle), sblocco progressivo; pulsante "< Menu" |
 | `LevelSelect.tscn` + script | ✅ completo — griglia 4 colonne con stato per livello (bloccato/stelle); legge `LevelLoader` + `SaveManager`; naviga a `GameBoard` al click |
-| `GameBoard.tscn` + script | ✅ completo — griglia cliccabile, tween, HUD (titolo + contatore mosse), calcolo stelle, salvataggio automatico; overlay Level Complete con rivelazione stelle sequenziale e pulsanti "Avanti"/"Mappa"; pulsante "< Mappa" + ESC |
+| `GameBoard.tscn` + script | ✅ completo — griglia cliccabile, tween, HUD completo (titolo, mosse, monete `✦`, pulsante Hint con label dinamica); overlay Level Complete (stelle sequenziali, mosse/par, monete guadagnate, "Avanti"/"Mappa"); flash tile hint (`_flash_tile_hint`); pulsante "< Mappa" + ESC |
 | `TestAllLevelsPlaythrough` | ✅ 111/111 livelli passati — playthrough 50 mosse per livello, verifica invarianti sync UI/logica |
 | `TestSaveManager` | ✅ 9/9 test passati — salvataggio, miglioramento, persistenza su disco, sblocco sequenziale |
 
@@ -287,17 +288,21 @@ Ceiling MD-increasing su 4×4: **~51 stabile, 52 borderline** (timeout a 55+).
 MainMenu (Main Scene) → ChapterSelect → LevelSelect → GameBoard → LevelSelect → ChapterSelect → MainMenu
 ```
 
-### Non iniziato — prossimi step
+### Stato verticale
+
+**Vertical slice completo e giocabile:** 111 livelli, 6 capitoli, progressione, stelle, monete, hint. Loop di navigazione integro dalla Main Scene all'overlay di fine livello.
+
+### Prossimi step
 
 | Componente | Priorità | Note |
 |---|---|---|
-| Sistema hint UI | media | `HintSolver` esiste ma non è collegato a nessuna UI |
+| Export Windows | **PROSSIMO** | validare pipeline di build prima del polish |
+| Export Android | alta | dopo Windows funzionante |
+| Titoli evocativi Cap II–VI | media | placeholder "Livello X-N" — da sessione dedicata alla lore |
 | `AudioManager` (Autoload) | bassa | musica e SFX |
-| Economia/monete | bassa | `GameManager` ha le variabili previste ma non usate |
-| Titoli evocativi Cap II–VI | bassa | placeholder "Livello X-N" — da sessione dedicata alla lore (stile: vedi `chapter_01.json`) |
-| Export Android/Windows | — | primo export reale da pianificare |
-| Daily puzzle | — | generazione deterministica da data |
-| MainMenu espanso | — | Continua/Nuova Partita, Impostazioni, Credits — da aggiungere quando audio e reset saranno pronti |
+| Daily puzzle | bassa | generazione deterministica da data |
+| MainMenu espanso | bassa | Continua/Nuova Partita, Impostazioni, Credits |
+| Google Play | — | dipende da export Android stabile |
 
 ---
 
