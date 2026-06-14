@@ -11,6 +11,10 @@
 #   - Non c'è un file .xaml separato: la struttura dei nodi figli è definita
 #     direttamente in _ready(), o nel file .tscn (che è il corrispettivo del .xaml).
 
+@tool
+# @tool permette a questo script di essere istanziato da altri script @tool (es. EditorScript
+# di test). Senza @tool, Godot crea un "placeholder" non funzionale quando uno script tool
+# carica questa scena, e tutte le chiamate ai metodi falliscono a runtime.
 class_name GameBoard
 extends Control
 
@@ -65,6 +69,12 @@ var _is_animating: bool = false
 # ---------------------------------------------------------------------------
 
 func _ready() -> void:
+	# Engine.is_editor_hint() è true quando il nodo è nell'editor (preview della scena).
+	# In quel contesto LevelLoader non è disponibile e non vogliamo costruire la board.
+	# Equivalente di DesignMode in WPF / [DesignerSerializationVisibility] in WinForms.
+	if Engine.is_editor_hint():
+		return
+
 	# PRESET_FULL_RECT = ancora questo nodo ai quattro bordi del genitore,
 	# riempiendo tutto lo schermo. Equivalente di Width="*" Height="*" in WPF Grid.
 	set_anchors_preset(Control.PRESET_FULL_RECT)
