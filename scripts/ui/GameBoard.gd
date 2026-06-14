@@ -92,11 +92,20 @@ func _ready() -> void:
 
 	_setup_background()
 
+	# Legge capitolo e livello da GameManager se disponibile (navigazione normale),
+	# altrimenti usa gli @export della scena (test isolato nell'editor).
+	# Pattern: GameManager è il chiamante runtime; @export è il fallback per l'editor.
+	var gm: Node = get_node_or_null("/root/GameManager")
+	if gm != null:
+		chapter  = gm.selected_chapter
+		level_id = gm.selected_level
+
 	_state = _load_level(chapter, level_id)
 
 	_build_board()
 	_refresh_tiles()
 	_setup_hud()
+	_setup_back_button()
 
 
 # Inizializza la board direttamente da dati grezzi, senza passare per LevelLoader.
@@ -480,3 +489,49 @@ func _play_solve_flash() -> void:
 	# queue_free() rimuove il nodo dal albero alla fine del frame — come Dispose() in C#.
 	# Passarlo direttamente come Callable funziona perché è un metodo dell'oggetto flash.
 	tween.tween_callback(flash.queue_free)
+
+
+# ---------------------------------------------------------------------------
+# Navigazione di ritorno — PARTE 3
+# ---------------------------------------------------------------------------
+
+# Crea un pulsante "< Mappa" in alto a sinistra, sotto il titolo del livello.
+# Visibile solo quando GameManager è disponibile (navigazione runtime, non editor).
+func _setup_back_button() -> void:
+	var gm: Node = get_node_or_null("/root/GameManager")
+	if gm == null:
+		return
+
+	var btn := Button.new()
+	btn.name   = "BackButton"
+	btn.text   = "< Mappa"
+	btn.add_theme_font_size_override("font_size", 18)
+	btn.add_theme_color_override("font_color", COL_TILE)
+
+	# Stile flat: nessun bordo, sfondo trasparente — solo testo colorato.
+	var style_normal  := StyleBoxFlat.new()
+	style_normal.bg_color = Color(0, 0, 0, 0)
+	var style_hover   := StyleBoxFlat.new()
+	style_hover.bg_color  = Color(1.0, 0.85, 0.1, 0.15)
+	btn.add_theme_stylebox_override("normal", style_normal)
+	btn.add_theme_stylebox_override("hover",  style_hover)
+	btn.add_theme_stylebox_override("pressed", style_hover)
+
+	# Posizionato sotto il titolo del livello (riga HUD sopra la board).
+	btn.position = Vector2(20.0, 50.0)
+	btn.size     = Vector2(120.0, 32.0)
+	add_child(btn)
+
+	btn.pressed.connect(_on_back_pressed)
+
+
+func _on_back_pressed() -> void:
+	var gm: Node = get_node_or_null("/root/GameManager")
+	if gm != null:
+		gm.goto_level_select(chapter)
+
+
+# ESC come alternativa touch-free al pulsante — comodo in editor e su desktop.
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel"):
+		_on_back_pressed()
