@@ -82,7 +82,7 @@ func save_level_result(p_chapter: int, p_level_id: int, p_moves_used: int) -> vo
 		return
 
 	var stars := _compute_stars(p_moves_used, level_data)
-	var prev  := get_level_progress(p_chapter, p_level_id)
+	var prev: Variant = get_level_progress(p_chapter, p_level_id)
 
 	# Non sovrascrivere se il risultato precedente è migliore.
 	# "Migliore" = più stelle; a parità di stelle, meno mosse.
@@ -129,7 +129,7 @@ func is_level_unlocked(p_chapter: int, p_level_id: int) -> bool:
 	if p_level_id <= 1:
 		return true
 
-	var prev := get_level_progress(p_chapter, p_level_id - 1)
+	var prev: Variant = get_level_progress(p_chapter, p_level_id - 1)
 	if prev == null:
 		return false
 	return prev.get("completed", false)

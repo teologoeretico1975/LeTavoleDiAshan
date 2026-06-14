@@ -35,7 +35,7 @@ func _run() -> void:
 
 	# T2 — sblocco sequenziale: livello 1 sempre aperto, livello 2 no finché 1 non è completed
 	total += 1
-	var ok_t2 := saver.is_level_unlocked(1, 1) and not saver.is_level_unlocked(1, 2)
+	var ok_t2: bool = saver.is_level_unlocked(1, 1) and not saver.is_level_unlocked(1, 2)
 	if not ok_t2:
 		failures.append("T2: livello 1 deve essere sbloccato, livello 2 no (prima del completamento)")
 	else:
