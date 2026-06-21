@@ -260,7 +260,7 @@ dinamicamente dalla struttura dati aggiornata.
 | `SaveManager` (Autoload) | ✅ completo — persistenza `user://save.json`, calcolo stelle, sblocco sequenziale livelli e capitoli; `save_level_result()` / `get_level_progress()` / `is_level_unlocked()` / `get_chapter_progress()` / `is_chapter_unlocked()` |
 | `GameManager` (Autoload) | ✅ completo — blackboard per navigazione tra scene (`selected_chapter`, `selected_level`); `goto_game_board()` / `goto_level_select()` / `goto_chapter_select()` / `goto_main_menu()` |
 | `SaveManager` (Autoload) | ✅ completo — persistenza `user://save.json`; stelle, sblocco livelli/capitoli, monete (`get_coins` / `add_coins` / `spend_coins`), hint (`is_hint_free` / `get_free_hints_remaining` / `use_hint`); primi 3 hint gratuiti, poi 20 monete cadauno |
-| `MainMenu.tscn` + script | ✅ completo — titolo, tagline, pulsante "Inizia"; **Main Scene del progetto** |
+| `MainMenu.tscn` + script | ✅ completo — titolo, tagline, pulsanti "Inizia" ed "Esci" (`get_tree().quit()`); **Main Scene del progetto** |
 | `ChapterSelect.tscn` + script | ✅ completo — lista verticale 6 capitoli con titolo narrativo, progresso (livelli/stelle), sblocco progressivo; pulsante "< Menu" |
 | `LevelSelect.tscn` + script | ✅ completo — griglia 4 colonne con stato per livello (bloccato/stelle); legge `LevelLoader` + `SaveManager`; naviga a `GameBoard` al click |
 | `GameBoard.tscn` + script | ✅ completo — griglia cliccabile, tween, HUD completo (titolo, mosse, monete `✦`, pulsante Hint con label dinamica); overlay Level Complete (stelle sequenziali, mosse/par, monete guadagnate, "Avanti"/"Mappa"); flash tile hint (`_flash_tile_hint`); pulsante "< Mappa" + ESC |
@@ -272,11 +272,11 @@ dinamicamente dalla struttura dati aggiornata.
 | File | Stato |
 |---|---|
 | `chapter_01.json` | ✅ 12 livelli 3×3, optimal 5–16, **titoli evocativi definitivi** |
-| `chapter_02.json` | ✅ 20 livelli 4×4, optimal 15–28, titoli placeholder |
-| `chapter_03.json` | ✅ 20 livelli 4×4, optimal 28–42, titoli placeholder |
-| `chapter_04.json` | ✅ 20 livelli 4×4, optimal 40–52, titoli placeholder |
-| `chapter_05.json` | ✅ 19 livelli 4×4, optimal 44–52, titoli placeholder (1 skip MD=52) |
-| `chapter_06.json` | ✅ 20 livelli 4×4, optimal 48–52, par_moves×1.2, titoli placeholder |
+| `chapter_02.json` | ✅ 20 livelli 4×4, optimal 15–28, **titoli evocativi definitivi** |
+| `chapter_03.json` | ✅ 20 livelli 4×4, optimal 28–42, **titoli evocativi definitivi** |
+| `chapter_04.json` | ✅ 20 livelli 4×4, optimal 40–52, **titoli evocativi definitivi** |
+| `chapter_05.json` | ✅ 19 livelli 4×4, optimal 44–52, **titoli evocativi definitivi** (1 skip MD=52) |
+| `chapter_06.json` | ✅ 20 livelli 4×4, optimal 48–52, par_moves×1.2, **titoli evocativi definitivi** |
 | `chapters.json` | ✅ titoli narrativi dei 6 capitoli in `data/chapters/` |
 
 Tutti i generatori `GenerateChapter01–06.gd` usano MD-increasing pura con seed fisso.
@@ -290,19 +290,24 @@ MainMenu (Main Scene) → ChapterSelect → LevelSelect → GameBoard → LevelS
 
 ### Stato verticale
 
-**Vertical slice completo e giocabile:** 111 livelli, 6 capitoli, progressione, stelle, monete, hint. Loop di navigazione integro dalla Main Scene all'overlay di fine livello.
+**Vertical slice completo e giocabile:** 111 livelli (Cap I: 12×3×3, Cap II–VI: 99×4×4), 6 capitoli con titoli lore definitivi, progressione, stelle, monete, hint, pulsante Esci. Loop di navigazione integro dalla Main Scene all'overlay di fine livello. Export Windows e Android funzionanti.
+
+### Completato in sessione (2026-06-21)
+
+| Componente | Note |
+|---|---|
+| Export Android | Ambiente configurato (JDK 17, NDK r23c, SDK), testato su Samsung Galaxy S21+, portrait bloccato (`orientation=6`) |
+| Titoli evocativi Cap II–VI | Tutti i 111 livelli hanno titoli lore definitivi. Cap V: 19 livelli, Cap VI: 20 livelli |
+| Pulsante "Esci" MainMenu | `get_tree().quit()`, stesso stile degli altri pulsanti, separatore visivo sopra |
 
 ### Prossimi step
 
 | Componente | Priorità | Note |
 |---|---|---|
-| Export Windows | ✅ completato | build testata, livello completato, funziona |
-| Export Android | ✅ completato | build testata su Samsung Galaxy S21+, portrait bloccato (orientation=6), funziona |
-| Titoli evocativi Cap II–VI | media | placeholder "Livello X-N" — da sessione dedicata alla lore |
-| `AudioManager` (Autoload) | bassa | musica e SFX |
-| Daily puzzle | bassa | generazione deterministica da data |
+| `AudioManager` (Autoload) | media | musica di sottofondo per capitolo, SFX tile/hint/complete |
+| Daily puzzle | media | generazione deterministica da data, schermata dedicata |
+| Google Play | media | account developer, firma APK release, store listing |
 | MainMenu espanso | bassa | Continua/Nuova Partita, Impostazioni, Credits |
-| Google Play | — | dipende da export Android stabile |
 
 ---
 
