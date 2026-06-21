@@ -47,13 +47,24 @@ func _ready() -> void:
 	lbl_tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	vbox.add_child(lbl_tag)
 
-	# Spacer vuoto per separare visivamente tagline e pulsante.
+	# Spacer vuoto per separare visivamente tagline e pulsanti.
 	var spacer := Control.new()
 	spacer.custom_minimum_size = Vector2(0, 24)
 	vbox.add_child(spacer)
 
+	vbox.add_child(_make_btn_row("Inizia", _on_start_pressed))
+
+	# Spacer extra per separare visivamente "Esci" dai pulsanti di navigazione.
+	var quit_spacer := Control.new()
+	quit_spacer.custom_minimum_size = Vector2(0, 16)
+	vbox.add_child(quit_spacer)
+
+	vbox.add_child(_make_btn_row("Esci", _on_quit_pressed))
+
+
+func _make_btn_row(label: String, callback: Callable) -> HBoxContainer:
 	var btn := Button.new()
-	btn.text = "Inizia"
+	btn.text = label
 	btn.add_theme_font_size_override("font_size", 26)
 	btn.add_theme_color_override("font_color", Color("1a1000"))
 	btn.custom_minimum_size = Vector2(200, 56)
@@ -72,18 +83,21 @@ func _ready() -> void:
 	btn.add_theme_stylebox_override("normal",  s_normal)
 	btn.add_theme_stylebox_override("hover",   s_hover)
 	btn.add_theme_stylebox_override("pressed", s_hover)
+	btn.pressed.connect(callback)
 	# Centra il pulsante orizzontalmente dentro il VBox usando un HBox wrapper.
 	# VBoxContainer estende i figli a tutta la larghezza — senza wrapper il
 	# pulsante occuperebbe l'intera larghezza dello schermo.
 	var hbox := HBoxContainer.new()
 	hbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	hbox.add_child(btn)
-	vbox.add_child(hbox)
-
-	btn.pressed.connect(_on_start_pressed)
+	return hbox
 
 
 func _on_start_pressed() -> void:
 	var gm: Node = get_node_or_null("/root/GameManager")
 	if gm != null:
 		gm.goto_chapter_select()
+
+
+func _on_quit_pressed() -> void:
+	get_tree().quit()
