@@ -25,7 +25,12 @@ SaveManager="*uid://bhiejw0hpbya0"
 
 3d/physics_engine="Jolt Physics"
 
+[display]
+
+window/handheld/orientation=6
+
 [rendering]
 
 rendering_device/driver.windows="d3d12"
 renderer/rendering_method="mobile"
+textures/vram_compression/import_etc2_astc=true

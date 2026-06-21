@@ -297,7 +297,7 @@ MainMenu (Main Scene) → ChapterSelect → LevelSelect → GameBoard → LevelS
 | Componente | Priorità | Note |
 |---|---|---|
 | Export Windows | ✅ completato | build testata, livello completato, funziona |
-| Export Android | **PROSSIMO** | dopo Windows funzionante |
+| Export Android | ✅ completato | build testata su Samsung Galaxy S21+, portrait bloccato (orientation=6), funziona |
 | Titoli evocativi Cap II–VI | media | placeholder "Livello X-N" — da sessione dedicata alla lore |
 | `AudioManager` (Autoload) | bassa | musica e SFX |
 | Daily puzzle | bassa | generazione deterministica da data |
