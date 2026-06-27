@@ -352,6 +352,7 @@ func _build_board() -> void:
 		board_bg.expand_mode  = TextureRect.EXPAND_IGNORE_SIZE
 		board_bg.size         = Vector2(board_px, board_px)
 		board_bg.custom_minimum_size = Vector2(board_px, board_px)
+		board_bg.modulate     = Color(0.45, 0.55, 0.85, 1.0)  # tinta blu-alienа
 		board_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_board_container.add_child(board_bg)
 
