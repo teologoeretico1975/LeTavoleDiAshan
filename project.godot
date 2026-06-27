@@ -24,7 +24,7 @@ LocalizationManager="*res://scripts/managers/localization_manager.gd"
 
 [internationalization]
 
-locale/translations=PackedStringArray("res://assets/translations/translations.csv")
+locale/translations=PackedStringArray("res://assets/translations/translations.en.translation", "res://assets/translations/translations.es.translation", "res://assets/translations/translations.it.translation")
 
 [display]
 
