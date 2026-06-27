@@ -1,14 +1,16 @@
 # scripts/ui/MainMenu.gd
-#
-# Schermata iniziale del gioco. Scope minimo: titolo, tagline, pulsante "Inizia".
-# Pulsanti aggiuntivi (Continua, Impostazioni, Daily Puzzle, Credits) verranno
-# aggiunti quando le relative funzionalità saranno implementate.
 
 extends Control
 
 
 const COL_BG   := Color("1a1000")
 const COL_GOLD := Color("c9a227")
+
+# Riferimenti ai nodi di testo localizzabili — aggiornati da _refresh_texts().
+var _lbl_title: Label
+var _lbl_tag: Label
+var _btn_start: Button
+var _btn_quit: Button
 
 
 func _ready() -> void:
@@ -31,35 +33,100 @@ func _ready() -> void:
 	vbox.anchor_bottom = 1.0
 	add_child(vbox)
 
-	var lbl_title := Label.new()
-	lbl_title.text = "Le Tavole di Ashan"
-	lbl_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl_title.add_theme_font_size_override("font_size", 48)
-	lbl_title.add_theme_color_override("font_color", COL_GOLD)
-	lbl_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	vbox.add_child(lbl_title)
+	_lbl_title = Label.new()
+	_lbl_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_lbl_title.add_theme_font_size_override("font_size", 48)
+	_lbl_title.add_theme_color_override("font_color", COL_GOLD)
+	_lbl_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vbox.add_child(_lbl_title)
 
-	var lbl_tag := Label.new()
-	lbl_tag.text = "Un puzzle dimenticato attende"
-	lbl_tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl_tag.add_theme_font_size_override("font_size", 20)
-	lbl_tag.add_theme_color_override("font_color", Color("7a6010"))
-	lbl_tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	vbox.add_child(lbl_tag)
+	_lbl_tag = Label.new()
+	_lbl_tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_lbl_tag.add_theme_font_size_override("font_size", 20)
+	_lbl_tag.add_theme_color_override("font_color", Color("7a6010"))
+	_lbl_tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vbox.add_child(_lbl_tag)
 
-	# Spacer vuoto per separare visivamente tagline e pulsanti.
 	var spacer := Control.new()
 	spacer.custom_minimum_size = Vector2(0, 24)
 	vbox.add_child(spacer)
 
-	vbox.add_child(_make_btn_row("Inizia", _on_start_pressed))
+	var hbox_start := _make_btn_row("", _on_start_pressed)
+	vbox.add_child(hbox_start)
+	_btn_start = hbox_start.get_child(0) as Button
 
-	# Spacer extra per separare visivamente "Esci" dai pulsanti di navigazione.
 	var quit_spacer := Control.new()
 	quit_spacer.custom_minimum_size = Vector2(0, 16)
 	vbox.add_child(quit_spacer)
 
-	vbox.add_child(_make_btn_row("Esci", _on_quit_pressed))
+	var hbox_quit := _make_btn_row("", _on_quit_pressed)
+	vbox.add_child(hbox_quit)
+	_btn_quit = hbox_quit.get_child(0) as Button
+
+	_setup_language_buttons()
+	_refresh_texts()
+
+
+# Aggiorna tutti i testi localizzabili. Chiamata al boot e a ogni cambio lingua.
+func _refresh_texts() -> void:
+	if _lbl_title != null:
+		_lbl_title.text = tr("GAME_TITLE")
+	if _lbl_tag != null:
+		_lbl_tag.text = tr("TAGLINE")
+	if _btn_start != null:
+		_btn_start.text = tr("BTN_START")
+	if _btn_quit != null:
+		_btn_quit.text = tr("BTN_QUIT")
+
+
+# Tre pulsanti compatti IT / EN / ES nell'angolo in basso a destra.
+func _setup_language_buttons() -> void:
+	var hbox := HBoxContainer.new()
+	hbox.add_theme_constant_override("separation", 8)
+	# Ancoro all'angolo in basso a destra del viewport.
+	hbox.anchor_left   = 1.0
+	hbox.anchor_top    = 1.0
+	hbox.anchor_right  = 1.0
+	hbox.anchor_bottom = 1.0
+	hbox.offset_left   = -188.0
+	hbox.offset_top    = -52.0
+	hbox.offset_right  = -12.0
+	hbox.offset_bottom = -12.0
+	add_child(hbox)
+
+	for locale: String in ["it", "en", "es"]:
+		var btn := Button.new()
+		btn.text = locale.to_upper()
+		btn.custom_minimum_size = Vector2(52, 36)
+		btn.add_theme_font_size_override("font_size", 15)
+		btn.add_theme_color_override("font_color", COL_GOLD)
+
+		var s_n := StyleBoxFlat.new()
+		s_n.bg_color = Color(0, 0, 0, 0.45)
+		s_n.border_color = COL_GOLD
+		s_n.border_width_left = 1; s_n.border_width_right  = 1
+		s_n.border_width_top  = 1; s_n.border_width_bottom = 1
+		s_n.corner_radius_top_left    = 6; s_n.corner_radius_top_right    = 6
+		s_n.corner_radius_bottom_left = 6; s_n.corner_radius_bottom_right = 6
+
+		var s_h := StyleBoxFlat.new()
+		s_h.bg_color = Color(1.0, 0.85, 0.1, 0.25)
+		s_h.corner_radius_top_left    = 6; s_h.corner_radius_top_right    = 6
+		s_h.corner_radius_bottom_left = 6; s_h.corner_radius_bottom_right = 6
+
+		btn.add_theme_stylebox_override("normal",  s_n)
+		btn.add_theme_stylebox_override("hover",   s_h)
+		btn.add_theme_stylebox_override("pressed", s_h)
+		btn.pressed.connect(_on_lang_pressed.bind(locale))
+		hbox.add_child(btn)
+
+
+func _on_lang_pressed(locale: String) -> void:
+	TranslationServer.set_locale(locale)
+	var saver: Node = get_node_or_null("/root/SaveManager")
+	if saver != null:
+		saver.set_language(locale)
+	_refresh_texts()
 
 
 func _make_btn_row(label: String, callback: Callable) -> HBoxContainer:
@@ -84,9 +151,6 @@ func _make_btn_row(label: String, callback: Callable) -> HBoxContainer:
 	btn.add_theme_stylebox_override("hover",   s_hover)
 	btn.add_theme_stylebox_override("pressed", s_hover)
 	btn.pressed.connect(callback)
-	# Centra il pulsante orizzontalmente dentro il VBox usando un HBox wrapper.
-	# VBoxContainer estende i figli a tutta la larghezza — senza wrapper il
-	# pulsante occuperebbe l'intera larghezza dello schermo.
 	var hbox := HBoxContainer.new()
 	hbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	hbox.add_child(btn)

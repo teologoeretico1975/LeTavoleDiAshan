@@ -49,6 +49,7 @@ const STARS_2 := "good_moves"
 # capitolo/livello per semplicità di accesso.
 const COINS_KEY      := "__coins__"
 const HINTS_USED_KEY := "__hints_used__"
+const LANGUAGE_KEY   := "__language__"
 
 # Monete assegnate per stella al primo raggiungimento di quel record.
 const COINS_PER_STAR := 10
@@ -76,6 +77,7 @@ var _data: Dictionary = {}
 
 func _ready() -> void:
 	_load_from_disk()
+	TranslationServer.set_locale(get_language())
 
 
 # ---------------------------------------------------------------------------
@@ -291,6 +293,21 @@ func use_hint() -> bool:
 
 	# Saldo insufficiente e nessun gratuito rimasto.
 	return false
+
+
+# ---------------------------------------------------------------------------
+# API lingua
+# ---------------------------------------------------------------------------
+
+# Ritorna il codice locale salvato (default "it").
+func get_language() -> String:
+	return str(_data.get(LANGUAGE_KEY, "it"))
+
+
+# Salva la preferenza lingua e la applica immediatamente.
+func set_language(p_locale: String) -> void:
+	_data[LANGUAGE_KEY] = p_locale
+	_save_to_disk()
 
 
 # Azzera tutto il progresso salvato (utile per debug/test).

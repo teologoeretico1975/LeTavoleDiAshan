@@ -64,7 +64,7 @@ func _setup_background() -> void:
 func _setup_header() -> void:
 	var back_btn := Button.new()
 	back_btn.name = "BackBtn"
-	back_btn.text = "< Menu"
+	back_btn.text = tr("BTN_BACK_MENU")
 	back_btn.add_theme_font_size_override("font_size", 18)
 	back_btn.add_theme_color_override("font_color", COL_GOLD)
 	var style_n := StyleBoxFlat.new()
@@ -81,7 +81,7 @@ func _setup_header() -> void:
 
 	var lbl := Label.new()
 	lbl.name = "LabelTitle"
-	lbl.text = "Le Tavole di Ashan"
+	lbl.text = tr("GAME_TITLE")
 	lbl.add_theme_font_size_override("font_size", 32)
 	lbl.add_theme_color_override("font_color", COL_GOLD)
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -122,9 +122,7 @@ func _build_chapter_list() -> void:
 	add_child(vbox)
 
 	for ch: int in range(1, NUM_CHAPTERS + 1):
-		var title: String = "Capitolo %d" % ch
-		if loader != null:
-			title = loader.get_chapter_title(ch)
+		var title: String = tr("CHAPTER_%d_TITLE" % ch)
 
 		var is_unlocked: bool = true
 		var progress: Dictionary = {
@@ -188,7 +186,7 @@ func _make_chapter_card(
 		var tl: int = progress.get("total_levels", 0)
 		var ts: int = progress.get("total_stars", 0)
 		var ms: int = progress.get("max_stars", 0)
-		lbl_prog.text = "%d/%d livelli  ·  %d/%d stelle" % [cl, tl, ts, ms]
+		lbl_prog.text = tr("PROGRESS_LABEL") % [cl, tl, ts, ms]
 		lbl_prog.add_theme_font_size_override("font_size", 16)
 		lbl_prog.add_theme_color_override("font_color", COL_GOLD_DIM)
 		lbl_prog.position = Vector2(20.0, 50.0)

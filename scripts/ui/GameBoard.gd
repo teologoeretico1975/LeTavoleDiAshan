@@ -235,7 +235,7 @@ func _setup_hud() -> void:
 	# Titolo del livello — sottile, in alto a sinistra.
 	_label_title = Label.new()
 	_label_title.name = "LabelTitle"
-	_label_title.text = _level_data.get("title", "")
+	_label_title.text = tr("LEVEL_%d_%d_TITLE" % [chapter, level_id])
 	_label_title.add_theme_font_size_override("font_size", 22)
 	_label_title.add_theme_color_override("font_color", COL_TILE)
 	_label_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -246,7 +246,7 @@ func _setup_hud() -> void:
 	# Contatore mosse — prominente, in alto a destra.
 	_label_moves = Label.new()
 	_label_moves.name = "LabelMoves"
-	_label_moves.text = "Mosse: 0"
+	_label_moves.text = tr("HUD_MOVES") % 0
 	_label_moves.add_theme_font_size_override("font_size", 28)
 	_label_moves.add_theme_color_override("font_color", COL_TILE)
 	_label_moves.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -437,7 +437,7 @@ func _try_move(tile_index: int) -> void:
 		# Aggiorna contatore mosse e label HUD.
 		_move_count += 1
 		if _label_moves != null:
-			_label_moves.text = "Mosse: %d" % _move_count
+			_label_moves.text = tr("HUD_MOVES") % _move_count
 
 		_is_animating = false
 
@@ -617,7 +617,7 @@ func _build_level_complete_panel() -> void:
 	# Titolo.
 	var lbl_title := Label.new()
 	lbl_title.name = "LabelTitle"
-	lbl_title.text = "Livello completato!"
+	lbl_title.text = tr("LEVEL_COMPLETE_TITLE")
 	lbl_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl_title.add_theme_font_size_override("font_size", 26)
 	lbl_title.add_theme_color_override("font_color", COL_TILE)
@@ -657,12 +657,12 @@ func _build_level_complete_panel() -> void:
 	hbox.add_theme_constant_override("separation", 24)
 	vbox.add_child(hbox)
 
-	var btn_map := _make_overlay_button("< Mappa")
+	var btn_map := _make_overlay_button(tr("BTN_BACK_MAP"))
 	btn_map.pressed.connect(_on_overlay_map_pressed)
 	hbox.add_child(btn_map)
 
 	# Salva il riferimento a "Avanti" per poterlo disabilitare se è l'ultimo livello.
-	_btn_next = _make_overlay_button("Avanti →")
+	_btn_next = _make_overlay_button(tr("BTN_NEXT"))
 	_btn_next.pressed.connect(_on_overlay_next_pressed)
 	hbox.add_child(_btn_next)
 
@@ -697,12 +697,12 @@ func _show_level_complete(p_stars: int, p_coins_earned: int) -> void:
 	var par: int = int(_level_data.get("par_moves", 0))
 
 	var lbl_moves := _level_complete_panel.get_node("Card/VBox/LabelMoves") as Label
-	lbl_moves.text = "Mosse: %d  ·  Par: %d" % [_move_count, par]
+	lbl_moves.text = tr("OVERLAY_MOVES_PAR") % [_move_count, par]
 
 	# Mostra monete guadagnate solo se è un record (coins_earned > 0).
 	var lbl_coins := _level_complete_panel.get_node("Card/VBox/LabelCoins") as Label
 	if p_coins_earned > 0:
-		lbl_coins.text = "+ %d monete" % p_coins_earned
+		lbl_coins.text = tr("COINS_EARNED") % p_coins_earned
 		lbl_coins.visible = true
 	else:
 		lbl_coins.visible = false
@@ -758,7 +758,7 @@ func _on_overlay_next_pressed() -> void:
 	else:
 		# Ultimo livello del capitolo: placeholder fino a schermata dedicata.
 		var lbl_title := _level_complete_panel.get_node("Card/VBox/LabelTitle") as Label
-		lbl_title.text = "Capitolo completato!"
+		lbl_title.text = tr("CHAPTER_COMPLETE_TITLE")
 		_btn_next.disabled = true
 		# Torna a LevelSelect dopo un breve delay per far leggere il messaggio.
 		await get_tree().create_timer(1.8).timeout
@@ -826,14 +826,14 @@ func _refresh_hint_button() -> void:
 
 	var saver: Node = _get_saver()
 	if saver == null:
-		_btn_hint.text = "Hint (20 ✦)"
+		_btn_hint.text = tr("HINT_LABEL_COST")
 		return
 
 	var free: int = saver.get_free_hints_remaining()
 	if free > 0:
-		_btn_hint.text = "Hint (Gratis %d/%d)" % [free, 3]
+		_btn_hint.text = tr("HINT_LABEL_FREE") % [free, 3]
 	else:
-		_btn_hint.text = "Hint (20 ✦)"
+		_btn_hint.text = tr("HINT_LABEL_COST")
 
 
 func _on_hint_pressed() -> void:
@@ -922,7 +922,7 @@ func _setup_back_button() -> void:
 
 	var btn := Button.new()
 	btn.name   = "BackButton"
-	btn.text   = "< Mappa"
+	btn.text   = tr("BTN_BACK_MAP")
 	btn.add_theme_font_size_override("font_size", 18)
 	btn.add_theme_color_override("font_color", COL_TILE)
 

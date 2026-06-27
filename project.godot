@@ -21,13 +21,17 @@ GameManager="*uid://2i2vcla7g2xq"
 LevelLoader="*res://scripts/managers/level_loader.gd"
 SaveManager="*uid://bhiejw0hpbya0"
 
-[physics]
+[internationalization]
 
-3d/physics_engine="Jolt Physics"
+locale/translations=PackedStringArray("res://assets/translations/translations.csv")
 
 [display]
 
 window/handheld/orientation=6
+
+[physics]
+
+3d/physics_engine="Jolt Physics"
 
 [rendering]
 

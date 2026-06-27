@@ -89,9 +89,7 @@ func _setup_header() -> void:
 	# Riga superiore: pulsante "< Capitoli" a sinistra, titolo capitolo centrato.
 
 	var loader: Node = _get_loader()
-	var chapter_title: String = "Capitolo %d" % chapter
-	if loader != null:
-		chapter_title = loader.get_chapter_title(chapter)
+	var chapter_title: String = tr("CHAPTER_%d_TITLE" % chapter)
 
 	# Label titolo capitolo — centrata in alto.
 	var lbl := Label.new()
@@ -113,7 +111,7 @@ func _setup_header() -> void:
 	# Pulsante "< Capitoli" (placeholder — ChapterSelect non ancora implementato).
 	var back_btn := Button.new()
 	back_btn.name = "BackBtn"
-	back_btn.text = "< Capitoli"
+	back_btn.text = tr("BTN_BACK_CHAPTERS")
 	back_btn.add_theme_font_size_override("font_size", 18)
 	back_btn.add_theme_color_override("font_color", COL_GOLD)
 	var style_n := StyleBoxFlat.new()
