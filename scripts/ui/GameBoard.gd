@@ -369,10 +369,6 @@ func _make_tile(board_index: int) -> Panel:
 		style_tex.texture_margin_right  = 0.0
 		style_tex.texture_margin_top    = 0.0
 		style_tex.texture_margin_bottom = 0.0
-		# PARTE 3 — Rilievo: ombra sotto-destra.
-		style_tex.shadow_color  = Color(0.0, 0.0, 0.0, 0.6)
-		style_tex.shadow_size   = 4
-		style_tex.shadow_offset = Vector2(3, 3)
 		panel.add_theme_stylebox_override("panel", style_tex)
 
 		# PARTE 3 — Bordi rilievo: highlight top/left + ombra bottom/right.
