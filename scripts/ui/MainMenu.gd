@@ -11,6 +11,7 @@ var _lbl_title: Label
 var _lbl_tag: Label
 var _btn_start: Button
 var _btn_quit: Button
+var _lang_buttons: Array[Button] = []
 
 
 func _ready() -> void:
@@ -65,6 +66,7 @@ func _ready() -> void:
 
 	_setup_language_buttons()
 	_refresh_texts()
+	_refresh_lang_buttons()
 
 
 # Aggiorna tutti i testi localizzabili. Chiamata al boot e a ogni cambio lingua.
@@ -119,6 +121,7 @@ func _setup_language_buttons() -> void:
 		btn.add_theme_stylebox_override("pressed", s_h)
 		btn.pressed.connect(_on_lang_pressed.bind(locale))
 		hbox.add_child(btn)
+		_lang_buttons.append(btn)
 
 
 func _on_lang_pressed(locale: String) -> void:
@@ -126,6 +129,33 @@ func _on_lang_pressed(locale: String) -> void:
 	if lm != null:
 		lm.set_language(locale)
 	_refresh_texts()
+	_refresh_lang_buttons()
+
+
+func _refresh_lang_buttons() -> void:
+	var active: String = TranslationServer.get_locale()
+	var locales: Array = ["it", "en", "es"]
+	for i: int in _lang_buttons.size():
+		var btn: Button = _lang_buttons[i]
+		if locales[i] == active:
+			# Attivo: sfondo oro pieno, testo scuro.
+			var s := StyleBoxFlat.new()
+			s.bg_color = COL_GOLD
+			s.corner_radius_top_left    = 6; s.corner_radius_top_right    = 6
+			s.corner_radius_bottom_left = 6; s.corner_radius_bottom_right = 6
+			btn.add_theme_stylebox_override("normal", s)
+			btn.add_theme_color_override("font_color", Color("1a1000"))
+		else:
+			# Inattivo: semitrasparente con bordo oro.
+			var s := StyleBoxFlat.new()
+			s.bg_color = Color(0, 0, 0, 0.45)
+			s.border_color = COL_GOLD
+			s.border_width_left = 1; s.border_width_right  = 1
+			s.border_width_top  = 1; s.border_width_bottom = 1
+			s.corner_radius_top_left    = 6; s.corner_radius_top_right    = 6
+			s.corner_radius_bottom_left = 6; s.corner_radius_bottom_right = 6
+			btn.add_theme_stylebox_override("normal", s)
+			btn.add_theme_color_override("font_color", COL_GOLD)
 
 
 func _make_btn_row(label: String, callback: Callable) -> HBoxContainer:
