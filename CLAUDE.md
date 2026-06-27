@@ -387,6 +387,14 @@ Modello **freemium**:
 | Board background | `TextureRect "BoardBackground"` figlio di `_board_container`: `STRETCH_SCALE`, `BG_PADDING=30px`, `modulate=Color(0.92,0.80,0.45)` (oro desaturato) |
 | Tile art — stato | ✅ accettabile per ora — si riprenderà in futuro per ulteriori rifinitura |
 
+### Completato in sessione (2026-06-27 — UI polish)
+
+| Componente | Note |
+|---|---|
+| Theme globale | `assets/themes/ashan_theme.tres` — Cinzel Decorative Regular + oro `Color(0.85,0.72,0.3)` su Label e Button; applicato a tutte e 5 le scene (.tscn) |
+| GameBoard HUD | Refactor da offset manuali a due `HBoxContainer`: Riga 1 `< Mappa · ⚙`, Riga 2 `Titolo · MOVES/monete`; nessun pixel offset hardcoded |
+| ChapterSelect scroll | Lista capitoli in `ScrollContainer` (fullscreen sotto header); scrollbar nascosta (`SCROLL_MODE_SHOW_NEVER`); fix capitolo VI tagliato su finestre basse |
+
 ### Roadmap
 
 #### Pre-lancio
@@ -395,7 +403,6 @@ Modello **freemium**:
 |---|---|---|
 | 1 | **SFX** | Effetti sonori: tile move, hint, level complete, stelle; slider volume SFX in Settings |
 | 2 | **Tile art** | Da rifinire in futuro — aspetto attuale accettabile |
-| 3 | **SFX** | Effetti sonori: tile move, hint, level complete, stelle; slider volume SFX in Settings |
 | 3 | **Daily Puzzle** | Puzzle giornaliero gratuito permanente, generazione deterministica da data, schermata dedicata |
 | 4 | **IAP** | Sblocco completo 0.99€, gate dopo Capitolo II; Google Play Billing integration |
 
