@@ -125,7 +125,6 @@ func _ready() -> void:
 	_build_board()
 	_refresh_tiles()
 	_setup_hud()
-	_setup_back_button()
 	_setup_hint_button()
 	_build_level_complete_panel()
 
@@ -238,64 +237,108 @@ func _set_chapter_overlay(p_chapter: int) -> void:
 	_chapter_overlay.color = COLORS[idx]
 
 
-# Costruisce le label HUD (titolo e contatore mosse) sopra la griglia.
-# Chiamata DOPO _load_level() perché legge _level_data["title"].
-#
-# NOTE PER CHI VIENE DA C#/WPF:
-#   - anchor_left/right/top/bottom definiscono il punto di riferimento nel genitore
-#     (0 = bordo sinistro/superiore, 1 = bordo destro/inferiore).
-#   - offset_* sono distanze in pixel dal punto di ancoraggio.
-#   - Label titolo: ancorata al bordo superiore-sinistro (anchor = 0,0) con margine.
-#   - Label mosse: ancorata al bordo superiore-destro (anchor_left/right = 1) con
-#     offset negativi per rientrare dal bordo — equivalente di Right/Top margin in WPF.
+# Costruisce l'HUD in cima alla schermata con due righe ordinate:
+#   Riga 1: [ < Mappa ]  ········  [ ⚙ ]
+#   Riga 2: [ Titolo livello ]  ·  [ MOVES: N  ✦ M ]
+# Usa HBoxContainer per ogni riga — nessun offset manuale.
 func _setup_hud() -> void:
-	# Titolo del livello — sottile, in alto a sinistra.
+	var gm: Node = get_node_or_null("/root/GameManager")
+
+	var hud := VBoxContainer.new()
+	hud.name = "HUD"
+	hud.anchor_left   = 0.0
+	hud.anchor_right  = 1.0
+	hud.anchor_top    = 0.0
+	hud.anchor_bottom = 0.0
+	hud.offset_left   = 8.0
+	hud.offset_right  = -8.0
+	hud.offset_top    = 8.0
+	hud.offset_bottom = 110.0
+	hud.add_theme_constant_override("separation", 2)
+	add_child(hud)
+
+	# ── Riga 1: pulsanti navigazione ──────────────────────────────────────────
+	var row1 := HBoxContainer.new()
+	row1.name = "HUDRow1"
+	row1.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row1.add_theme_constant_override("separation", 0)
+	hud.add_child(row1)
+
+	if gm != null:
+		var btn_back := Button.new()
+		btn_back.name = "BackButton"
+		btn_back.text = tr("BTN_BACK_MAP")
+		btn_back.add_theme_font_size_override("font_size", 18)
+		btn_back.add_theme_color_override("font_color", COL_TILE)
+		var s_back_n := StyleBoxFlat.new()
+		s_back_n.bg_color = Color(0, 0, 0, 0)
+		var s_back_h := StyleBoxFlat.new()
+		s_back_h.bg_color = Color(1.0, 0.85, 0.1, 0.15)
+		btn_back.add_theme_stylebox_override("normal",  s_back_n)
+		btn_back.add_theme_stylebox_override("hover",   s_back_h)
+		btn_back.add_theme_stylebox_override("pressed", s_back_h)
+		btn_back.pressed.connect(_on_back_pressed)
+		row1.add_child(btn_back)
+
+	var spacer1 := Control.new()
+	spacer1.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row1.add_child(spacer1)
+
+	if gm != null:
+		var btn_cfg := Button.new()
+		btn_cfg.name = "SettingsButton"
+		btn_cfg.text = "⚙"
+		btn_cfg.add_theme_font_size_override("font_size", 22)
+		btn_cfg.add_theme_color_override("font_color", COL_TILE)
+		var s_cfg_n := StyleBoxFlat.new()
+		s_cfg_n.bg_color = Color(0, 0, 0, 0)
+		var s_cfg_h := StyleBoxFlat.new()
+		s_cfg_h.bg_color = Color(1.0, 0.85, 0.1, 0.15)
+		s_cfg_h.corner_radius_top_left    = 6; s_cfg_h.corner_radius_top_right    = 6
+		s_cfg_h.corner_radius_bottom_left = 6; s_cfg_h.corner_radius_bottom_right = 6
+		btn_cfg.add_theme_stylebox_override("normal",  s_cfg_n)
+		btn_cfg.add_theme_stylebox_override("hover",   s_cfg_h)
+		btn_cfg.add_theme_stylebox_override("pressed", s_cfg_h)
+		btn_cfg.pressed.connect(_on_settings_pressed)
+		row1.add_child(btn_cfg)
+
+	# ── Riga 2: titolo (sinistra) | mosse + monete (destra) ──────────────────
+	var row2 := HBoxContainer.new()
+	row2.name = "HUDRow2"
+	row2.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row2.add_theme_constant_override("separation", 8)
+	hud.add_child(row2)
+
 	_label_title = Label.new()
 	_label_title.name = "LabelTitle"
 	_label_title.text = tr("LEVEL_%d_%d_TITLE" % [chapter, level_id])
-	_label_title.add_theme_font_size_override("font_size", 22)
+	_label_title.add_theme_font_size_override("font_size", 20)
 	_label_title.add_theme_color_override("font_color", COL_TILE)
-	_label_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	# Position con anchor default (0,0) = offset in pixel dall'angolo superiore-sinistro.
-	_label_title.position = Vector2(20.0, 20.0)
-	add_child(_label_title)
+	_label_title.mouse_filter         = Control.MOUSE_FILTER_IGNORE
+	_label_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_label_title.clip_text            = true
+	row2.add_child(_label_title)
 
-	# Contatore mosse — prominente, in alto a destra.
+	var right_stats := VBoxContainer.new()
+	right_stats.name = "RightStats"
+	row2.add_child(right_stats)
+
 	_label_moves = Label.new()
 	_label_moves.name = "LabelMoves"
 	_label_moves.text = tr("HUD_MOVES") % 0
-	_label_moves.add_theme_font_size_override("font_size", 28)
+	_label_moves.add_theme_font_size_override("font_size", 26)
 	_label_moves.add_theme_color_override("font_color", COL_TILE)
 	_label_moves.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_label_moves.mouse_filter         = Control.MOUSE_FILTER_IGNORE
-	# Ancora al bordo destro: anchor_left = anchor_right = 1 → il punto di riferimento
-	# è il bordo destro del genitore. offset negativi = rientro verso sinistra.
-	_label_moves.anchor_left   = 1.0
-	_label_moves.anchor_right  = 1.0
-	_label_moves.anchor_top    = 0.0
-	_label_moves.anchor_bottom = 0.0
-	_label_moves.offset_left   = -200.0
-	_label_moves.offset_right  = -60.0
-	_label_moves.offset_top    = 20.0
-	_label_moves.offset_bottom = 60.0
-	add_child(_label_moves)
+	right_stats.add_child(_label_moves)
 
-	# Saldo monete — sotto il contatore mosse, stesso lato destro.
 	_label_coins = Label.new()
 	_label_coins.name = "LabelCoins"
-	_label_coins.add_theme_font_size_override("font_size", 20)
+	_label_coins.add_theme_font_size_override("font_size", 18)
 	_label_coins.add_theme_color_override("font_color", COL_TILE)
 	_label_coins.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_label_coins.mouse_filter         = Control.MOUSE_FILTER_IGNORE
-	_label_coins.anchor_left   = 1.0
-	_label_coins.anchor_right  = 1.0
-	_label_coins.anchor_top    = 0.0
-	_label_coins.anchor_bottom = 0.0
-	_label_coins.offset_left   = -200.0
-	_label_coins.offset_right  = -20.0
-	_label_coins.offset_top    = 62.0
-	_label_coins.offset_bottom = 92.0
-	add_child(_label_coins)
+	right_stats.add_child(_label_coins)
 	_refresh_coins_label()
 
 
@@ -950,59 +993,9 @@ func _flash_tile_hint(p_panel: Control) -> void:
 # Navigazione di ritorno — PARTE 3
 # ---------------------------------------------------------------------------
 
-# Crea un pulsante "< Mappa" in alto a sinistra, sotto il titolo del livello.
-# Visibile solo quando GameManager è disponibile (navigazione runtime, non editor).
+# Logica migrata in _setup_hud() — mantenuta come stub per compatibilità.
 func _setup_back_button() -> void:
-	var gm: Node = get_node_or_null("/root/GameManager")
-	if gm == null:
-		return
-
-	var btn := Button.new()
-	btn.name   = "BackButton"
-	btn.text   = tr("BTN_BACK_MAP")
-	btn.add_theme_font_size_override("font_size", 18)
-	btn.add_theme_color_override("font_color", COL_TILE)
-
-	# Stile flat: nessun bordo, sfondo trasparente — solo testo colorato.
-	var style_normal  := StyleBoxFlat.new()
-	style_normal.bg_color = Color(0, 0, 0, 0)
-	var style_hover   := StyleBoxFlat.new()
-	style_hover.bg_color  = Color(1.0, 0.85, 0.1, 0.15)
-	btn.add_theme_stylebox_override("normal", style_normal)
-	btn.add_theme_stylebox_override("hover",  style_hover)
-	btn.add_theme_stylebox_override("pressed", style_hover)
-
-	# Posizionato sotto il titolo del livello (riga HUD sopra la board).
-	btn.position = Vector2(20.0, 50.0)
-	btn.size     = Vector2(120.0, 32.0)
-	add_child(btn)
-
-	btn.pressed.connect(_on_back_pressed)
-
-	# Pulsante ⚙ Settings — angolo in alto a destra, accanto alle mosse.
-	var btn_cfg := Button.new()
-	btn_cfg.name = "SettingsButton"
-	btn_cfg.text = "⚙"
-	btn_cfg.add_theme_font_size_override("font_size", 22)
-	btn_cfg.add_theme_color_override("font_color", COL_TILE)
-
-	var s_cfg_n := StyleBoxFlat.new()
-	s_cfg_n.bg_color = Color(0, 0, 0, 0)
-	var s_cfg_h := StyleBoxFlat.new()
-	s_cfg_h.bg_color = Color(1.0, 0.85, 0.1, 0.15)
-	s_cfg_h.corner_radius_top_left    = 6; s_cfg_h.corner_radius_top_right    = 6
-	s_cfg_h.corner_radius_bottom_left = 6; s_cfg_h.corner_radius_bottom_right = 6
-	btn_cfg.add_theme_stylebox_override("normal",  s_cfg_n)
-	btn_cfg.add_theme_stylebox_override("hover",   s_cfg_h)
-	btn_cfg.add_theme_stylebox_override("pressed", s_cfg_h)
-
-	# Ancorato in alto a destra, vicino al contatore mosse.
-	btn_cfg.anchor_left   = 1.0; btn_cfg.anchor_right  = 1.0
-	btn_cfg.anchor_top    = 0.0; btn_cfg.anchor_bottom = 0.0
-	btn_cfg.offset_left   = -52.0; btn_cfg.offset_right  = -12.0
-	btn_cfg.offset_top    = 20.0;  btn_cfg.offset_bottom = 52.0
-	add_child(btn_cfg)
-	btn_cfg.pressed.connect(_on_settings_pressed)
+	pass
 
 
 func _on_settings_pressed() -> void:
