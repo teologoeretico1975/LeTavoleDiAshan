@@ -360,6 +360,7 @@ func _make_tile(board_index: int) -> Control:
 	tile.name                = "Tile%d" % board_index
 	tile.size                = Vector2(TILE_SIZE, TILE_SIZE)
 	tile.custom_minimum_size = Vector2(TILE_SIZE, TILE_SIZE)
+	tile.expand_mode         = TextureRect.EXPAND_IGNORE_SIZE
 	tile.stretch_mode        = TextureRect.STRETCH_SCALE
 	tile.mouse_filter        = Control.MOUSE_FILTER_STOP
 
