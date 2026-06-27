@@ -367,10 +367,12 @@ func _make_tile(board_index: int) -> Panel:
 	# TextureRect — dimensione esplicita (no anchor preset: evita dipendenza dal rect del parent
 	# prima che il nodo sia nell'albero di scena).
 	var tex_rect := TextureRect.new()
-	tex_rect.name         = "StoneTexture"
-	tex_rect.size         = Vector2(TILE_SIZE, TILE_SIZE)
-	tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	tex_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tex_rect.name                = "StoneTexture"
+	tex_rect.position            = Vector2(0.0, 0.0)
+	tex_rect.size                = Vector2(TILE_SIZE, TILE_SIZE)
+	tex_rect.custom_minimum_size = Vector2(TILE_SIZE, TILE_SIZE)
+	tex_rect.stretch_mode        = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	tex_rect.mouse_filter        = Control.MOUSE_FILTER_IGNORE
 	var tex := ResourceLoader.load("res://assets/texture/stonetile256x256.png") as Texture2D
 	if tex != null:
 		tex_rect.texture = tex
