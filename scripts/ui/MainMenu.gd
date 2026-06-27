@@ -190,17 +190,13 @@ func _setup_volume_slider() -> void:
 
 # Crea una texture circolare oro per il grabber dello slider.
 func _make_grabber_texture() -> ImageTexture:
-	var size := 16
-	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
-	var center := Vector2(size / 2.0, size / 2.0)
-	var radius := size / 2.0 - 1.0
-	for y in size:
-		for x in size:
-			var d := Vector2(x, y).distance_to(center)
-			if d <= radius:
-				img.set_pixel(x, y, COL_GOLD)
-			else:
-				img.set_pixel(x, y, Color(0, 0, 0, 0))
+	var sz := 16
+	var img := Image.create(sz, sz, false, Image.FORMAT_RGBA8)
+	var center := Vector2(sz / 2.0, sz / 2.0)
+	var radius  := sz / 2.0 - 1.0
+	for y in sz:
+		for x in sz:
+			img.set_pixel(x, y, COL_GOLD if Vector2(x, y).distance_to(center) <= radius else Color(0,0,0,0))
 	return ImageTexture.create_from_image(img)
 
 
