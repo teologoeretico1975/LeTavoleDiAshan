@@ -122,10 +122,9 @@ func _setup_language_buttons() -> void:
 
 
 func _on_lang_pressed(locale: String) -> void:
-	TranslationServer.set_locale(locale)
-	var saver: Node = get_node_or_null("/root/SaveManager")
-	if saver != null:
-		saver.set_language(locale)
+	var lm: Node = get_node_or_null("/root/LocalizationManager")
+	if lm != null:
+		lm.set_language(locale)
 	_refresh_texts()
 
 

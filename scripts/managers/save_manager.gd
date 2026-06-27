@@ -77,7 +77,7 @@ var _data: Dictionary = {}
 
 func _ready() -> void:
 	_load_from_disk()
-	TranslationServer.set_locale(get_language())
+	# La lingua viene applicata da LocalizationManager (autoload successivo).
 
 
 # ---------------------------------------------------------------------------
@@ -299,12 +299,17 @@ func use_hint() -> bool:
 # API lingua
 # ---------------------------------------------------------------------------
 
-# Ritorna il codice locale salvato (default "it").
+# Ritorna il codice locale salvato (default "it" se mai impostato).
 func get_language() -> String:
 	return str(_data.get(LANGUAGE_KEY, "it"))
 
 
-# Salva la preferenza lingua e la applica immediatamente.
+# True se l'utente ha mai scelto una lingua esplicitamente (chiave presente).
+func has_language_saved() -> bool:
+	return _data.has(LANGUAGE_KEY)
+
+
+# Persiste la preferenza lingua. La locale viene applicata da LocalizationManager.
 func set_language(p_locale: String) -> void:
 	_data[LANGUAGE_KEY] = p_locale
 	_save_to_disk()

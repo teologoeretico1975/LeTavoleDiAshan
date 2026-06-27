@@ -20,6 +20,7 @@ config/icon="res://icon.svg"
 GameManager="*uid://2i2vcla7g2xq"
 LevelLoader="*res://scripts/managers/level_loader.gd"
 SaveManager="*uid://bhiejw0hpbya0"
+LocalizationManager="*res://scripts/managers/localization_manager.gd"
 
 [internationalization]
 
