@@ -368,6 +368,13 @@ func _make_tile(board_index: int) -> Control:
 	if tex != null:
 		tile.texture = tex
 
+	# Shader luminanza: rende trasparenti i pixel neri/scuri del PNG (che è RGB senza alpha).
+	var shader := ResourceLoader.load("res://assets/shaders/stone_tile.gdshader") as Shader
+	if shader != null:
+		var mat := ShaderMaterial.new()
+		mat.shader = shader
+		tile.material = mat
+
 	# Label numero — Cinzel Decorative oro, centrata sul tile.
 	var label := Label.new()
 	label.name                 = "Label"
