@@ -18,12 +18,12 @@ const VOLUME_KEY     := "music_volume"
 
 # Mappa capitolo → nome file OGG (senza directory).
 const TRACKS: Dictionary = {
-	1: "chapter 1 - juanjo_sound - Dungeon II.ogg",
-	2: "chapter 2 - juanjo_sound - Dungeon III.ogg",
-	3: "chapter 3 - juanjo_sound - Shrine of Undoing.ogg",
-	4: "chapter 4 - juanjo_sound - Forgotten Souls.ogg",
-	5: "chapter 5 - juanjo_sound - Dungeon.ogg",
-	6: "chapter 6 - juanjo_sound - Beyond Earth.ogg",
+	1: "chapter_01.ogg",
+	2: "chapter_02.ogg",
+	3: "chapter_03.ogg",
+	4: "chapter_04.ogg",
+	5: "chapter_05.ogg",
+	6: "chapter_06.ogg",
 }
 
 # Due player per il crossfade: "A" è quello correntemente audibile.
