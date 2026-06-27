@@ -395,15 +395,24 @@ Modello **freemium**:
 | GameBoard HUD | Refactor da offset manuali a due `HBoxContainer`: Riga 1 `< Mappa · ⚙`, Riga 2 `Titolo · MOVES/monete`; nessun pixel offset hardcoded |
 | ChapterSelect scroll | Lista capitoli in `ScrollContainer` (fullscreen sotto header); scrollbar nascosta (`SCROLL_MODE_SHOW_NEVER`); fix capitolo VI tagliato su finestre basse |
 
+### Completato in sessione (2026-06-27 — SFX)
+
+| Componente | Note |
+|---|---|
+| SFX — file | 5 OGG in `assets/audio/sfx/`: `tile_move`, `tile_invalid`, `hint`, `star`, `level_complete` |
+| SFX — AudioManager | Pool 3× `AudioStreamPlayer` round-robin (sovrapposizioni rapide); cache stream; `play_sfx(name)`; `set/get_sfx_volume()` |
+| SFX — trigger GameBoard | `tile_move`: inizio tween · `tile_invalid`: tap non valido · `hint`: dopo concessione · `level_complete`: ingresso `_on_puzzle_solved()` · `star`: ogni callback `_reveal_stars()` |
+| SFX — volume | Separato dalla musica; chiave `__sfx_volume__` in `SaveManager`; slider 🔔 in Settings con chiave `SETTINGS_SFX_VOLUME` (IT/EN/ES) |
+
 ### Roadmap
 
 #### Pre-lancio
 
 | Priorità | Componente | Note |
 |---|---|---|
-| 1 | **SFX** | Effetti sonori: tile move, hint, level complete, stelle; slider volume SFX in Settings |
-| 2 | **Tile art** | Da rifinire in futuro — aspetto attuale accettabile |
-| 3 | **Daily Puzzle** | Puzzle giornaliero gratuito permanente, generazione deterministica da data, schermata dedicata |
+| 1 | ~~**SFX**~~ | ✅ Completato — 5 trigger, volume separato, slider in Settings |
+| 2 | **Daily Puzzle** | Puzzle giornaliero gratuito permanente, generazione deterministica da data, schermata dedicata |
+| 3 | **Tile art** | Da rifinire in futuro — aspetto attuale accettabile |
 | 4 | **IAP** | Sblocco completo 0.99€, gate dopo Capitolo II; Google Play Billing integration |
 
 #### Lancio
