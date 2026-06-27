@@ -348,7 +348,7 @@ func _build_board() -> void:
 		var board_bg := TextureRect.new()
 		board_bg.name         = "BoardBackground"
 		board_bg.texture      = bg_tex
-		board_bg.stretch_mode = TextureRect.STRETCH_TILE
+		board_bg.stretch_mode = TextureRect.STRETCH_SCALE
 		board_bg.expand_mode  = TextureRect.EXPAND_IGNORE_SIZE
 		board_bg.size         = Vector2(board_px, board_px)
 		board_bg.custom_minimum_size = Vector2(board_px, board_px)
