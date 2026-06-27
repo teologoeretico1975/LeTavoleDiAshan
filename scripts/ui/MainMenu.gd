@@ -158,20 +158,50 @@ func _setup_volume_slider() -> void:
 	slider.max_value  = 100.0
 	slider.step       = 1.0
 	slider.value      = init_value
-	slider.custom_minimum_size = Vector2(170, 0)
-	# Stile minimale: colore oro per il fill, grigio scuro per il track.
+	slider.custom_minimum_size = Vector2(170, 20)
+	slider.add_theme_constant_override("grabber_offset", 0)
+
+	# Track background: bordo oro su fondo semitrasparente scuro — ben visibile.
 	var style_bg := StyleBoxFlat.new()
-	style_bg.bg_color = Color(0.15, 0.1, 0.0, 0.8)
+	style_bg.bg_color = Color(0.05, 0.03, 0.0, 0.85)
+	style_bg.border_color = COL_GOLD
+	style_bg.border_width_left = 1; style_bg.border_width_right  = 1
+	style_bg.border_width_top  = 1; style_bg.border_width_bottom = 1
 	style_bg.corner_radius_top_left    = 4; style_bg.corner_radius_top_right    = 4
 	style_bg.corner_radius_bottom_left = 4; style_bg.corner_radius_bottom_right = 4
+	style_bg.content_margin_left  = 2; style_bg.content_margin_right  = 2
+	style_bg.content_margin_top   = 6; style_bg.content_margin_bottom = 6
 	slider.add_theme_stylebox_override("slider", style_bg)
+
+	# Area riempita: oro pieno.
 	var style_fill := StyleBoxFlat.new()
 	style_fill.bg_color = COL_GOLD
-	style_fill.corner_radius_top_left    = 4; style_fill.corner_radius_top_right    = 4
-	style_fill.corner_radius_bottom_left = 4; style_fill.corner_radius_bottom_right = 4
+	style_fill.corner_radius_top_left    = 3; style_fill.corner_radius_top_right    = 3
+	style_fill.corner_radius_bottom_left = 3; style_fill.corner_radius_bottom_right = 3
 	slider.add_theme_stylebox_override("grabber_area", style_fill)
+	slider.add_theme_stylebox_override("grabber_area_highlight", style_fill)
+
+	# Grabber (manopola): cerchio oro visibile.
+	slider.add_theme_icon_override("grabber", _make_grabber_texture())
+
 	slider.value_changed.connect(_on_volume_changed)
 	hbox.add_child(slider)
+
+
+# Crea una texture circolare oro per il grabber dello slider.
+func _make_grabber_texture() -> ImageTexture:
+	var size := 16
+	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	var center := Vector2(size / 2.0, size / 2.0)
+	var radius := size / 2.0 - 1.0
+	for y in size:
+		for x in size:
+			var d := Vector2(x, y).distance_to(center)
+			if d <= radius:
+				img.set_pixel(x, y, COL_GOLD)
+			else:
+				img.set_pixel(x, y, Color(0, 0, 0, 0))
+	return ImageTexture.create_from_image(img)
 
 
 func _on_volume_changed(p_value: float) -> void:

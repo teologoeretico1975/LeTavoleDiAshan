@@ -72,6 +72,10 @@ func _ready() -> void:
 	_setup_header()
 	_build_level_grid()
 
+	var am: Node = get_node_or_null("/root/AudioManager")
+	if am != null:
+		am.fade_to_chapter(chapter)
+
 
 # ---------------------------------------------------------------------------
 # Header
