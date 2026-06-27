@@ -227,7 +227,66 @@ cella. Questo elimina qualsiasi deriva accumulata tra stato logico e stato visiv
 devono **leggere lo stato attuale** al momento dell'esecuzione, non dipendere
 da variabili catturate al momento della registrazione.
 
-### Non legare callback di nodi a indici di array mutabili
+### TextureRect: expand_mode e minimum size
+
+**Problema riscontrato:** `TextureRect` con `expand_mode = EXPAND_KEEP_SIZE` (default) usa le
+dimensioni della texture come `minimum_size` del nodo. Con una texture 521×521 e un tile 120×120,
+il minimum size effettivo era 521px — i tile traboccavano dal board_container creando layout caotico.
+
+**Pattern corretto:**
+```gdscript
+tile.expand_mode = TextureRect.EXPAND_IGNORE_SIZE  # minimum_size = 0, non dipende dalla texture
+tile.size = Vector2(TILE_SIZE, TILE_SIZE)
+tile.custom_minimum_size = Vector2(TILE_SIZE, TILE_SIZE)
+```
+
+**Regola generale:** quando si usa `TextureRect` con dimensione fissa (tile, icone, sprite),
+impostare sempre `expand_mode = EXPAND_IGNORE_SIZE` per disaccoppiare la dimensione del nodo
+da quella della texture.
+
+### Layout figli di Control non-Container: usare il nodo diretto, non un wrapper
+
+**Problema riscontrato:** tile implementato come `Panel` con `TextureRect` e `Label` figli.
+`TextureRect` e `Label` con `size` manuale vengono ridimensionati dal layout pass di Godot
+dopo l'inserimento nell'albero di scena, perché il Panel non è un Container e non blocca
+il layout dei figli. Diverse combinazioni di `size`/`custom_minimum_size`/anchors
+non risolvevano il problema — i figli mantenevano dimensioni errate a runtime.
+
+**Pattern corretto:** usare `TextureRect` direttamente come nodo root del tile.
+La texture è intrinseca al nodo, non un figlio separato. Il solo figlio è la `Label`.
+```gdscript
+var tile := TextureRect.new()
+tile.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+tile.stretch_mode = TextureRect.STRETCH_SCALE
+tile.size = Vector2(TILE_SIZE, TILE_SIZE)
+tile.custom_minimum_size = Vector2(TILE_SIZE, TILE_SIZE)
+# Label come unico figlio
+```
+
+**Regola generale:** se un nodo visivo deve avere una texture come sfondo, preferire
+`TextureRect` come root rispetto a `Panel + TextureRect figlio`. Il layout dei figli
+in Control non-Container è meno prevedibile di quanto sembri.
+
+### Trasparenza su PNG RGB: usare uno shader canvas_item
+
+**Problema:** il PNG `stonetile256x256.png` è RGB senza canale alpha (color type 2).
+Lo sfondo scuro è pixel solidi opachi — non si può rendere trasparente via proprietà del nodo.
+
+**Soluzione:** `ShaderMaterial` con shader `canvas_item` che calcola la luminanza e usa
+`smoothstep` per fare alpha fade sui pixel scuri:
+```glsl
+shader_type canvas_item;
+uniform float cutoff : hint_range(0.0, 1.0) = 0.12;
+uniform float feather : hint_range(0.0, 0.2) = 0.06;
+void fragment() {
+    vec4 col = texture(TEXTURE, UV);
+    float luma = dot(col.rgb, vec3(0.299, 0.587, 0.114));
+    COLOR = vec4(col.rgb, smoothstep(cutoff, cutoff + feather, luma));
+}
+```
+Lo shader è in `assets/shaders/stone_tile.gdshader`.
+
+### Non aggiornare UI in modo incrementale da callback asincroni
 
 **Problema riscontrato:** in `_make_tile(board_index)`, il segnale `gui_input`
 veniva connesso con `.bind(board_index)`. Dopo ogni mossa i panel vengono
@@ -318,13 +377,21 @@ Modello **freemium**:
 - **Daily Puzzle gratuito permanente** — leva di retention giornaliera, disponibile a tutti gli utenti anche senza acquisto
 - Nessun ads, nessun pay-to-win: il gioco è volutamente premium nel tono, coerente con l'estetica dark fantasy
 
+### Completato in sessione (2026-06-27 — tile art)
+
+| Componente | Note |
+|---|---|
+| Tile art — struttura | Tile come `TextureRect` root (non `Panel`); font Cinzel Decorative oro; shader luminanza per trasparenza sfondo |
+| Tile art — shader | `assets/shaders/stone_tile.gdshader` — rende trasparenti i pixel scuri del PNG RGB; effetto etereo sull'atmosfera del dungeon |
+| Tile art — stato | ⚠️ **da rivedere** — effetto attuale piacevole ma non definitivo; texture `stonetile256x256.png` (521×521 reali) |
+
 ### Roadmap
 
 #### Pre-lancio
 
 | Priorità | Componente | Note |
 |---|---|---|
-| 1 | **Tile art** | Texture pietra incisa sui tile della GameBoard — visual identity core |
+| 1 | **Tile art** ⚠️ | Aspetto attuale funziona ma da rifinire — valutare texture alternativa, bordi, o look completamente diverso |
 | 2 | **SFX** | Effetti sonori: tile move, hint, level complete, stelle; slider volume SFX in Settings |
 | 3 | **Daily Puzzle** | Puzzle giornaliero gratuito permanente, generazione deterministica da data, schermata dedicata |
 | 4 | **IAP** | Sblocco completo 0.99€, gate dopo Capitolo II; Google Play Billing integration |
