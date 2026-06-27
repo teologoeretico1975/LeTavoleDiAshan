@@ -381,9 +381,11 @@ Modello **freemium**:
 
 | Componente | Note |
 |---|---|
-| Tile art — struttura | Tile come `TextureRect` root (non `Panel`); font Cinzel Decorative oro; shader luminanza per trasparenza sfondo |
-| Tile art — shader | `assets/shaders/stone_tile.gdshader` — rende trasparenti i pixel scuri del PNG RGB; effetto etereo sull'atmosfera del dungeon |
-| Tile art — stato | ⚠️ **da rivedere** — effetto attuale piacevole ma non definitivo; texture `stonetile256x256.png` (521×521 reali) |
+| Tile art — struttura | Tile come `TextureRect` root; `expand_mode=EXPAND_IGNORE_SIZE`; `STRETCH_KEEP_ASPECT_COVERED`; `TILE_GAP=3px` |
+| Tile art — font | Cinzel Decorative Regular, oro `Color(0.9,0.78,0.35)`, outline nero size 3, shadow offset (2,2) |
+| Tile art — texture | `stonetile256x256.png` (521×521 reali, PNG con alpha nativo) — nessuno shader |
+| Board background | `TextureRect "BoardBackground"` figlio di `_board_container`: `STRETCH_SCALE`, `BG_PADDING=30px`, `modulate=Color(0.92,0.80,0.45)` (oro desaturato) |
+| Tile art — stato | ✅ accettabile per ora — si riprenderà in futuro per ulteriori rifinitura |
 
 ### Roadmap
 
@@ -391,8 +393,9 @@ Modello **freemium**:
 
 | Priorità | Componente | Note |
 |---|---|---|
-| 1 | **Tile art** ⚠️ | Aspetto attuale funziona ma da rifinire — valutare texture alternativa, bordi, o look completamente diverso |
-| 2 | **SFX** | Effetti sonori: tile move, hint, level complete, stelle; slider volume SFX in Settings |
+| 1 | **SFX** | Effetti sonori: tile move, hint, level complete, stelle; slider volume SFX in Settings |
+| 2 | **Tile art** | Da rifinire in futuro — aspetto attuale accettabile |
+| 3 | **SFX** | Effetti sonori: tile move, hint, level complete, stelle; slider volume SFX in Settings |
 | 3 | **Daily Puzzle** | Puzzle giornaliero gratuito permanente, generazione deterministica da data, schermata dedicata |
 | 4 | **IAP** | Sblocco completo 0.99€, gate dopo Capitolo II; Google Play Billing integration |
 
