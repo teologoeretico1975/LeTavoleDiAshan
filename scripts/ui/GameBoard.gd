@@ -354,7 +354,7 @@ func _build_board() -> void:
 		board_bg.position     = Vector2(-BG_PADDING, -BG_PADDING)
 		board_bg.size         = bg_size
 		board_bg.custom_minimum_size = bg_size
-		board_bg.modulate     = Color(0.55, 0.48, 0.30, 1.0)  # oro desaturato, riprende il tono dei numeri
+		board_bg.modulate     = Color(0.75, 0.65, 0.38, 1.0)  # oro desaturato, riprende il tono dei numeri
 		board_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_board_container.add_child(board_bg)
 
