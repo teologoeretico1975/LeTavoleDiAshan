@@ -344,6 +344,23 @@ Modello **freemium**:
 
 ---
 
+## Strategia Marketing (zero budget)
+
+> Il Play Store da solo non genera discovery senza momentum esterno: senza
+> recensioni iniziali e traffico organico da fonti esterne, un'app nuova
+> rimane invisibile. Queste attività sono pre-requisito per la visibilità
+> organica e vanno eseguite in parallelo al lancio, non dopo.
+
+| Priorità | Canale | Azione |
+|---|---|---|
+| 1 | **ASO** | Ottimizzare titolo, descrizione, keyword e screenshot del listing Play Store per search intent reali: `dark puzzle game`, `lovecraftian puzzle`, `puzzle logico atmosferico`. Titolo breve + sottotitolo keyword-ricco. Screenshot con testo overlay in italiano e inglese. |
+| 2 | **itch.io** | Pubblicare versione Windows su itch.io come canale parallelo per la comunità indie. Page curata con GIF gameplay, descrizione lore, prezzo pay-what-you-want o free. Genera backlink e prime recensioni da giocatori indie. |
+| 3 | **Reddit** | Post mirati al momento del lancio su r/indiegaming, r/AndroidGaming, r/lovecraft, r/puzzlegames. Formato: "Made this solo — dark fantasy puzzle game inspired by Lovecraft". Includere GIF gameplay breve e link diretto. |
+| 4 | **TikTok / Instagram Reels** | Video 30s: gameplay con musica ambientale e sfondi atmosferici, formato "ho fatto questo gioco da solo". Mostrare il contrasto visivo e sonoro. Caption con hashtag (#indiegame #puzzlegame #lovecraft #solodev). |
+| 5 | **Daily Puzzle shareable** | Aggiungere screenshot condivisibile al completamento del Daily Puzzle (meccanismo Wordle): griglia risolta + stelle + mosse + data. Condivisibile direttamente da gioco. Loop virale gratuito e retention giornaliera. |
+
+---
+
 ## Glossario di dominio
 
 | Termine         | Significato                                              |
