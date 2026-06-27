@@ -275,7 +275,7 @@ func _setup_hud() -> void:
 	_label_moves.anchor_top    = 0.0
 	_label_moves.anchor_bottom = 0.0
 	_label_moves.offset_left   = -200.0
-	_label_moves.offset_right  = -20.0
+	_label_moves.offset_right  = -60.0
 	_label_moves.offset_top    = 20.0
 	_label_moves.offset_bottom = 60.0
 	add_child(_label_moves)
