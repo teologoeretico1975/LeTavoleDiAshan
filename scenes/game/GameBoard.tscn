@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://c7kn2p4qb8x3m"]
 
 [ext_resource type="Script" uid="uid://dwymcb6ruvrn2" path="res://scripts/ui/GameBoard.gd" id="1_gameboard"]
+[ext_resource type="Texture2D" uid="uid://dspet6yajtn7s" path="res://assets/backgrounds/main_menu_bg.jpg" id="2_bg"]
 
 [node name="GameBoard" type="Control" unique_id=1394509845]
 layout_mode = 3
@@ -10,3 +11,24 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_gameboard")
+
+[node name="TextureRect" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_bg")
+stretch_mode = 6
+
+[node name="ChapterOverlay" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.1, 0.05, 0.0, 0.45)

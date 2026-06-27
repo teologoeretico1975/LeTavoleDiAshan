@@ -49,16 +49,8 @@ func _ready() -> void:
 		return
 
 	set_anchors_preset(Control.PRESET_FULL_RECT)
-	_setup_background()
 	_setup_header()
 	_build_chapter_list()
-
-
-func _setup_background() -> void:
-	var bg := ColorRect.new()
-	bg.color = COL_BG
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(bg)
 
 
 func _setup_header() -> void:

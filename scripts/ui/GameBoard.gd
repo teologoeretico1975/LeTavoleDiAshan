@@ -67,6 +67,9 @@ var _tile_nodes: Array
 # Riferimento al container dei tile, usato per il flash di risoluzione.
 var _board_container: Control
 
+# ColorRect overlay dal .tscn — colore impostato da _set_chapter_overlay().
+var _chapter_overlay: ColorRect
+
 # Label HUD — aggiornate da _setup_hud() e durante il gioco.
 var _label_title: Label
 var _label_moves: Label
@@ -102,8 +105,6 @@ func _ready() -> void:
 	# riempiendo tutto lo schermo. Equivalente di Width="*" Height="*" in WPF Grid.
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 
-	_setup_background()
-
 	# Legge capitolo e livello da GameManager se disponibile (navigazione normale),
 	# altrimenti usa gli @export della scena (test isolato nell'editor).
 	# Pattern: GameManager è il chiamante runtime; @export è il fallback per l'editor.
@@ -113,6 +114,9 @@ func _ready() -> void:
 		level_id = gm.selected_level
 
 	_state = _load_level(chapter, level_id)
+
+	_chapter_overlay = get_node_or_null("ChapterOverlay") as ColorRect
+	_set_chapter_overlay(chapter)
 
 	_build_board()
 	_refresh_tiles()
@@ -213,12 +217,21 @@ func _get_loader() -> Node:
 	return get_node_or_null("/root/LevelLoader")
 
 
-func _setup_background() -> void:
-	var bg := ColorRect.new()
-	bg.color = COL_BG
-	# Ancora il ColorRect a tutto il genitore — come Background="..." sul root in WPF.
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(bg)
+# Imposta il colore dell'overlay in base al capitolo corrente.
+# Il ColorRect "ChapterOverlay" è definito nel .tscn e viene colorato a runtime.
+func _set_chapter_overlay(p_chapter: int) -> void:
+	if _chapter_overlay == null:
+		return
+	const COLORS: Array = [
+		Color(0.1,  0.05, 0.0,  0.45),  # 1 — amber scuro, caldo e misterioso
+		Color(0.0,  0.05, 0.15, 0.50),  # 2 — blu freddo, geometria aliena
+		Color(0.08, 0.03, 0.0,  0.50),  # 3 — ambra spenta, degrado
+		Color(0.0,  0.0,  0.05, 0.60),  # 4 — quasi nero, silenzio assoluto
+		Color(0.0,  0.08, 0.08, 0.50),  # 5 — teal organico, presenza
+		Color(0.02, 0.0,  0.08, 0.55),  # 6 — viola cosmico, orrore finale
+	]
+	var idx: int = clampi(p_chapter - 1, 0, COLORS.size() - 1)
+	_chapter_overlay.color = COLORS[idx]
 
 
 # Costruisce le label HUD (titolo e contatore mosse) sopra la griglia.
