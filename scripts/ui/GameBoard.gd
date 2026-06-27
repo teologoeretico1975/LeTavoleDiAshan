@@ -59,7 +59,7 @@ var _level_data: Dictionary = {}
 # Contatore mosse dell'utente nella partita corrente.
 var _move_count: int = 0
 
-# Array di Panel, uno per posizione nella griglia (0..8 per un 3x3).
+# Array di Control (tile), uno per posizione nella griglia (0..8 per un 3x3).
 # INVARIANTE: _tile_nodes[i] è sempre il nodo visivo per la posizione board i.
 # Manteniamo questo invariante facendo swap dopo ogni mossa animata.
 var _tile_nodes: Array
@@ -147,7 +147,7 @@ func apply_move_instant(tile_index: int) -> void:
 		return
 	var blank_index: int = _state.blank_index
 	_state = _state.apply_move(tile_index)
-	var tmp: Panel = _tile_nodes[tile_index]
+	var tmp: Control = _tile_nodes[tile_index]
 	_tile_nodes[tile_index] = _tile_nodes[blank_index]
 	_tile_nodes[blank_index] = tmp
 	_refresh_tiles()
@@ -352,58 +352,24 @@ func _build_board() -> void:
 		_tile_nodes.append(tile)
 
 
-func _make_tile(board_index: int) -> Panel:
-	var panel := Panel.new()
-	panel.name = "Tile%d" % board_index
-	panel.size = Vector2(TILE_SIZE, TILE_SIZE)
-	panel.mouse_filter = Control.MOUSE_FILTER_STOP
+func _make_tile(board_index: int) -> Control:
+	var tile := Control.new()
+	tile.name = "Tile%d" % board_index
+	tile.size = Vector2(TILE_SIZE, TILE_SIZE)
+	tile.mouse_filter = Control.MOUSE_FILTER_STOP
 
-	# Blocco di pietra illuminato dall'alto-sinistra — effetti puri, nessuna texture.
-	# StyleBoxFlat gestisce bg, angoli e ombra esterna. I bordi asimmetrici
-	# (chiaro top/left, scuro bottom/right) richiedono due strati aggiuntivi
-	# perché StyleBoxFlat ha un solo border_color per tutti i lati.
-	var style := StyleBoxFlat.new()
-	style.bg_color                    = Color(0.18, 0.16, 0.13, 1.0)
-	style.corner_radius_top_left      = 6; style.corner_radius_top_right    = 6
-	style.corner_radius_bottom_left   = 6; style.corner_radius_bottom_right = 6
-	style.shadow_color                = Color(0.0, 0.0, 0.0, 0.7)
-	style.shadow_size                 = 6
-	style.shadow_offset               = Vector2(4, 4)
-	panel.add_theme_stylebox_override("panel", style)
+	# TextureRect — sprite pietra 256×256, scalato a riempire il tile.
+	var tex_rect := TextureRect.new()
+	tex_rect.name = "StoneTexture"
+	tex_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	tex_rect.stretch_mode = TextureRect.STRETCH_SCALE
+	tex_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var tex := ResourceLoader.load("res://assets/texture/stonetile256x256.png") as Texture2D
+	if tex != null:
+		tex_rect.texture = tex
+	tile.add_child(tex_rect)
 
-	# Bordo highlight (top + left): luce che colpisce la pietra dall'alto-sinistra.
-	var hi_top := ColorRect.new()
-	hi_top.color        = Color(0.45, 0.40, 0.32, 0.8)
-	hi_top.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	hi_top.set_anchors_preset(Control.PRESET_FULL_RECT)
-	hi_top.offset_right = 0; hi_top.offset_bottom = -TILE_SIZE + 3   # striscia top
-	panel.add_child(hi_top)
-
-	var hi_left := ColorRect.new()
-	hi_left.color        = Color(0.45, 0.40, 0.32, 0.8)
-	hi_left.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	hi_left.set_anchors_preset(Control.PRESET_FULL_RECT)
-	hi_left.offset_right = -TILE_SIZE + 3; hi_left.offset_bottom = 0   # striscia left
-	panel.add_child(hi_left)
-
-	# Bordo ombra (bottom + right): profondità percepita.
-	var sh_bottom := ColorRect.new()
-	sh_bottom.color        = Color(0.05, 0.04, 0.03, 1.0)
-	sh_bottom.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	sh_bottom.anchor_left = 0.0; sh_bottom.anchor_top    = 1.0
-	sh_bottom.anchor_right = 1.0; sh_bottom.anchor_bottom = 1.0
-	sh_bottom.offset_top = -3; sh_bottom.offset_bottom = 0
-	panel.add_child(sh_bottom)
-
-	var sh_right := ColorRect.new()
-	sh_right.color        = Color(0.05, 0.04, 0.03, 1.0)
-	sh_right.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	sh_right.anchor_left = 1.0; sh_right.anchor_top    = 0.0
-	sh_right.anchor_right = 1.0; sh_right.anchor_bottom = 1.0
-	sh_right.offset_left = -3; sh_right.offset_right = 0
-	panel.add_child(sh_right)
-
-	# PARTE 2 — Label con font Cinzel Decorative ed effetto incisione.
+	# Label numero — Cinzel Decorative, oro, sopra la texture.
 	var label := Label.new()
 	label.name = "Label"
 	label.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -411,41 +377,32 @@ func _make_tile(board_index: int) -> Panel:
 	label.vertical_alignment   = VERTICAL_ALIGNMENT_CENTER
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	# Font Cinzel Decorative — evoca pietra incisa medievale/gotica.
 	var font := ResourceLoader.load(
 		"res://assets/fonts/Cinzel_Decorative/CinzelDecorative-Regular.ttf"
 	) as Font
 	if font != null:
 		label.add_theme_font_override("font", font)
 
-	# Dimensione adattiva: tile più piccoli (4×4) hanno numeri a 2 cifre → font più piccolo.
 	var font_size: int = 52 if _grid_size == 3 else 36
 	label.add_theme_font_size_override("font_size", font_size)
-
-	# Oro brunito — meno brillante dell'oro UI, dà l'effetto di pigmento nella pietra.
-	label.add_theme_color_override("font_color", Color(0.85, 0.72, 0.3, 1.0))
-
-	# Outline quasi-nero: simula il solco dell'incisione attorno alla cifra.
-	label.add_theme_color_override("font_outline_color", Color(0.05, 0.03, 0.01, 1.0))
+	label.add_theme_color_override("font_color",         Color(0.9,  0.78, 0.35, 1.0))
+	label.add_theme_color_override("font_outline_color", Color(0.0,  0.0,  0.0,  1.0))
 	label.add_theme_constant_override("outline_size", 3)
-
-	# Ombra: dà profondità al numero come se fosse in rilievo sulla pietra.
-	label.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.8))
+	label.add_theme_color_override("font_shadow_color",  Color(0.0,  0.0,  0.0,  0.8))
 	label.add_theme_constant_override("shadow_offset_x", 2)
 	label.add_theme_constant_override("shadow_offset_y", 2)
 
-	panel.add_child(label)
+	tile.add_child(label)
+	tile.gui_input.connect(_on_tile_input.bind(tile))
 
-	panel.gui_input.connect(_on_tile_input.bind(panel))
-
-	return panel
+	return tile
 
 
 # ---------------------------------------------------------------------------
 # Input
 # ---------------------------------------------------------------------------
 
-func _on_tile_input(event: InputEvent, panel: Panel) -> void:
+func _on_tile_input(event: InputEvent, panel: Control) -> void:
 	if _is_animating or _is_solved:
 		return
 
@@ -492,7 +449,7 @@ func _try_move(tile_index: int) -> void:
 		# Scambia i riferimenti nell'array per mantenere l'invariante:
 		# _tile_nodes[i] = nodo visivo per la posizione board i.
 		# Dopo la mossa, il tile che era in tile_index è ora in blank_index e viceversa.
-		var tmp: Panel = _tile_nodes[tile_index]
+		var tmp: Control = _tile_nodes[tile_index]
 		_tile_nodes[tile_index] = _tile_nodes[blank_index]
 		_tile_nodes[blank_index] = tmp
 
@@ -517,7 +474,7 @@ func _try_move(tile_index: int) -> void:
 func _refresh_tiles() -> void:
 	for i: int in _grid_size * _grid_size:
 		var val: int = _state.tiles[i]
-		var panel: Panel = _tile_nodes[i]
+		var panel: Control = _tile_nodes[i]
 		var label: Label = panel.get_node("Label")
 
 		# Riposiziona sempre il panel alla cella di griglia corrispondente a i.
@@ -957,7 +914,7 @@ func _flash_hint_button_denied() -> void:
 
 # Flash dorato su una singola tile suggerita dall'hint.
 # Stesso pattern di _play_solve_flash() ma circoscritto al pannello della tile.
-func _flash_tile_hint(p_panel: Panel) -> void:
+func _flash_tile_hint(p_panel: Control) -> void:
 	var flash := ColorRect.new()
 	flash.color = Color(1.0, 0.85, 0.1, 0.0)
 	flash.set_anchors_preset(Control.PRESET_FULL_RECT)
