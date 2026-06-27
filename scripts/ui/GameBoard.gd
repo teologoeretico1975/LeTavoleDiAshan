@@ -358,44 +358,50 @@ func _make_tile(board_index: int) -> Panel:
 	panel.size = Vector2(TILE_SIZE, TILE_SIZE)
 	panel.mouse_filter = Control.MOUSE_FILTER_STOP
 
-	# PARTE 1 — Texture pietra come sfondo del tile.
-	# StyleBoxTexture mostra stonetile.png stirato a coprire l'intero Panel.
-	var tex := ResourceLoader.load("res://assets/texture/stonetile.png") as Texture2D
-	if tex != null:
-		var style_tex := StyleBoxTexture.new()
-		style_tex.texture = tex
-		# Angoli arrotondati tramite expand_margin: nessun margine = copertura totale.
-		style_tex.texture_margin_left   = 0.0
-		style_tex.texture_margin_right  = 0.0
-		style_tex.texture_margin_top    = 0.0
-		style_tex.texture_margin_bottom = 0.0
-		panel.add_theme_stylebox_override("panel", style_tex)
+	# Blocco di pietra illuminato dall'alto-sinistra — effetti puri, nessuna texture.
+	# StyleBoxFlat gestisce bg, angoli e ombra esterna. I bordi asimmetrici
+	# (chiaro top/left, scuro bottom/right) richiedono due strati aggiuntivi
+	# perché StyleBoxFlat ha un solo border_color per tutti i lati.
+	var style := StyleBoxFlat.new()
+	style.bg_color                    = Color(0.18, 0.16, 0.13, 1.0)
+	style.corner_radius_top_left      = 6; style.corner_radius_top_right    = 6
+	style.corner_radius_bottom_left   = 6; style.corner_radius_bottom_right = 6
+	style.shadow_color                = Color(0.0, 0.0, 0.0, 0.7)
+	style.shadow_size                 = 6
+	style.shadow_offset               = Vector2(4, 4)
+	panel.add_theme_stylebox_override("panel", style)
 
-		# PARTE 3 — Bordi rilievo: highlight top/left + ombra bottom/right.
-		# Godot 4 non ha border per StyleBoxTexture, usiamo un ColorRect overlay
-		# con disegno custom tramite CanvasItem. Soluzione pratica: due ColorRect
-		# sottili fissi sopra e a sinistra (chiaro), sotto e a destra (scuro).
-		var bevel_tl := ColorRect.new()
-		bevel_tl.color = Color(0.4, 0.5, 0.5, 0.3)
-		bevel_tl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		bevel_tl.set_anchors_preset(Control.PRESET_FULL_RECT)
-		bevel_tl.offset_right  = -2; bevel_tl.offset_bottom = -2
-		panel.add_child(bevel_tl)
+	# Bordo highlight (top + left): luce che colpisce la pietra dall'alto-sinistra.
+	var hi_top := ColorRect.new()
+	hi_top.color        = Color(0.45, 0.40, 0.32, 0.8)
+	hi_top.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hi_top.set_anchors_preset(Control.PRESET_FULL_RECT)
+	hi_top.offset_right = 0; hi_top.offset_bottom = -TILE_SIZE + 3   # striscia top
+	panel.add_child(hi_top)
 
-		var bevel_br := ColorRect.new()
-		bevel_br.color = Color(0.0, 0.0, 0.0, 0.5)
-		bevel_br.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		bevel_br.anchor_left   = 0.0; bevel_br.anchor_top    = 0.0
-		bevel_br.anchor_right  = 1.0; bevel_br.anchor_bottom = 1.0
-		bevel_br.offset_left = 2; bevel_br.offset_top = 2
-		panel.add_child(bevel_br)
-	else:
-		# Fallback se la texture non è ancora importata.
-		var style_fb := StyleBoxFlat.new()
-		style_fb.bg_color = COL_TILE
-		style_fb.corner_radius_top_left     = 10; style_fb.corner_radius_top_right    = 10
-		style_fb.corner_radius_bottom_left  = 10; style_fb.corner_radius_bottom_right = 10
-		panel.add_theme_stylebox_override("panel", style_fb)
+	var hi_left := ColorRect.new()
+	hi_left.color        = Color(0.45, 0.40, 0.32, 0.8)
+	hi_left.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hi_left.set_anchors_preset(Control.PRESET_FULL_RECT)
+	hi_left.offset_right = -TILE_SIZE + 3; hi_left.offset_bottom = 0   # striscia left
+	panel.add_child(hi_left)
+
+	# Bordo ombra (bottom + right): profondità percepita.
+	var sh_bottom := ColorRect.new()
+	sh_bottom.color        = Color(0.05, 0.04, 0.03, 1.0)
+	sh_bottom.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	sh_bottom.anchor_left = 0.0; sh_bottom.anchor_top    = 1.0
+	sh_bottom.anchor_right = 1.0; sh_bottom.anchor_bottom = 1.0
+	sh_bottom.offset_top = -3; sh_bottom.offset_bottom = 0
+	panel.add_child(sh_bottom)
+
+	var sh_right := ColorRect.new()
+	sh_right.color        = Color(0.05, 0.04, 0.03, 1.0)
+	sh_right.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	sh_right.anchor_left = 1.0; sh_right.anchor_top    = 0.0
+	sh_right.anchor_right = 1.0; sh_right.anchor_bottom = 1.0
+	sh_right.offset_left = -3; sh_right.offset_right = 0
+	panel.add_child(sh_right)
 
 	# PARTE 2 — Label con font Cinzel Decorative ed effetto incisione.
 	var label := Label.new()
