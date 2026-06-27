@@ -342,7 +342,7 @@ func _build_board() -> void:
 	add_child(_board_container)
 
 	# Sfondo pietra: padding attorno all'area tile per contenere i bordi visivi delle tile.
-	const BG_PADDING: float = 10.0
+	const BG_PADDING: float = 20.0
 	var bg_tex := ResourceLoader.load("res://assets/texture/stonetile256x256.png") as Texture2D
 	if bg_tex != null:
 		var bg_size := Vector2(board_px + BG_PADDING * 2.0, board_px + BG_PADDING * 2.0)
