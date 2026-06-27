@@ -11,8 +11,9 @@ const COL_GOLD     := Color("c9a227")
 const COL_GOLD_DIM := Color("7a6010")
 const COL_DARK     := Color("1a1000")
 
-var _lang_buttons: Array[Button] = []
-var _volume_label: Label
+var _lang_buttons:    Array[Button] = []
+var _volume_label:    Label
+var _sfx_vol_label:   Label
 
 
 func _ready() -> void:
@@ -43,6 +44,8 @@ func _build_ui() -> void:
 
 	vbox.add_child(_make_separator())
 	_build_audio_section(vbox)
+	vbox.add_child(_make_separator())
+	_build_sfx_section(vbox)
 	vbox.add_child(_make_separator())
 	_build_language_section(vbox)
 	vbox.add_child(_make_separator())
@@ -130,6 +133,85 @@ func _on_volume_changed(p_value: float) -> void:
 	var am: Node = get_node_or_null("/root/AudioManager")
 	if am != null:
 		am.set_volume(p_value / 100.0)
+
+
+# ---------------------------------------------------------------------------
+# Sezione SFX
+# ---------------------------------------------------------------------------
+
+func _build_sfx_section(p_parent: VBoxContainer) -> void:
+	var section := VBoxContainer.new()
+	section.add_theme_constant_override("separation", 16)
+	p_parent.add_child(section)
+
+	var lbl := Label.new()
+	lbl.text = tr("SETTINGS_SFX_VOLUME")
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.add_theme_font_size_override("font_size", 22)
+	lbl.add_theme_color_override("font_color", COL_GOLD)
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	section.add_child(lbl)
+
+	var hbox := HBoxContainer.new()
+	hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	hbox.add_theme_constant_override("separation", 14)
+	section.add_child(hbox)
+
+	var icon := Label.new()
+	icon.text = "🔔"
+	icon.add_theme_font_size_override("font_size", 22)
+	icon.add_theme_color_override("font_color", COL_GOLD)
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hbox.add_child(icon)
+
+	var am: Node = get_node_or_null("/root/AudioManager")
+	var init_val: float = (am.get_sfx_volume() if am != null else 0.8) * 100.0
+
+	var slider := HSlider.new()
+	slider.min_value = 0.0
+	slider.max_value = 100.0
+	slider.step      = 1.0
+	slider.value     = init_val
+	slider.custom_minimum_size = Vector2(240, 24)
+
+	var style_bg := StyleBoxFlat.new()
+	style_bg.bg_color = Color(0.05, 0.03, 0.0, 0.85)
+	style_bg.border_color = COL_GOLD
+	style_bg.border_width_left = 1; style_bg.border_width_right  = 1
+	style_bg.border_width_top  = 1; style_bg.border_width_bottom = 1
+	style_bg.corner_radius_top_left    = 4; style_bg.corner_radius_top_right    = 4
+	style_bg.corner_radius_bottom_left = 4; style_bg.corner_radius_bottom_right = 4
+	style_bg.content_margin_left  = 2; style_bg.content_margin_right  = 2
+	style_bg.content_margin_top   = 7; style_bg.content_margin_bottom = 7
+	slider.add_theme_stylebox_override("slider", style_bg)
+
+	var style_fill := StyleBoxFlat.new()
+	style_fill.bg_color = COL_GOLD
+	style_fill.corner_radius_top_left    = 3; style_fill.corner_radius_top_right    = 3
+	style_fill.corner_radius_bottom_left = 3; style_fill.corner_radius_bottom_right = 3
+	slider.add_theme_stylebox_override("grabber_area", style_fill)
+	slider.add_theme_stylebox_override("grabber_area_highlight", style_fill)
+	slider.add_theme_icon_override("grabber", _make_grabber_texture())
+
+	hbox.add_child(slider)
+
+	_sfx_vol_label = Label.new()
+	_sfx_vol_label.text = "%d%%" % int(init_val)
+	_sfx_vol_label.custom_minimum_size = Vector2(48, 0)
+	_sfx_vol_label.add_theme_font_size_override("font_size", 20)
+	_sfx_vol_label.add_theme_color_override("font_color", COL_GOLD)
+	_sfx_vol_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hbox.add_child(_sfx_vol_label)
+
+	slider.value_changed.connect(_on_sfx_volume_changed)
+
+
+func _on_sfx_volume_changed(p_value: float) -> void:
+	if _sfx_vol_label != null:
+		_sfx_vol_label.text = "%d%%" % int(p_value)
+	var am: Node = get_node_or_null("/root/AudioManager")
+	if am != null:
+		am.set_sfx_volume(p_value / 100.0)
 
 
 # ---------------------------------------------------------------------------

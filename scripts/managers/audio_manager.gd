@@ -12,9 +12,10 @@
 
 extends Node
 
-const MUSIC_DIR      := "res://assets/audio/music/"
-const DEFAULT_VOLUME := 0.8          # 0.0 – 1.0, corrisponde a ~-2 dB
-const VOLUME_KEY     := "music_volume"
+const MUSIC_DIR         := "res://assets/audio/music/"
+const SFX_DIR           := "res://assets/audio/sfx/"
+const DEFAULT_VOLUME    := 0.8
+const DEFAULT_SFX_VOL   := 0.8
 
 # Mappa capitolo → nome file OGG (senza directory).
 const TRACKS: Dictionary = {
@@ -39,6 +40,12 @@ var _current_chapter: int = -1
 # True durante un crossfade — impedisce di accodare più fade contemporanei.
 var _fading: bool = false
 
+# Pool di 3 player SFX per permettere sovrapposizioni rapide (es. tile_move veloce).
+var _sfx_players: Array[AudioStreamPlayer] = []
+var _sfx_index:   int   = 0          # round-robin sul pool
+var _sfx_volume:  float = DEFAULT_SFX_VOL
+var _sfx_cache:   Dictionary = {}    # path → AudioStream già caricato
+
 
 func _ready() -> void:
 	_player_a = AudioStreamPlayer.new()
@@ -49,12 +56,22 @@ func _ready() -> void:
 	_player_b.name = "PlayerB"
 	add_child(_player_b)
 
-	# Legge il volume salvato da SaveManager se disponibile.
+	# Legge i volumi salvati da SaveManager se disponibili.
 	var saver: Node = get_node_or_null("/root/SaveManager")
-	if saver != null and saver.has_volume_saved():
-		_volume = saver.get_music_volume()
+	if saver != null:
+		if saver.has_volume_saved():
+			_volume = saver.get_music_volume()
+		if saver.has_sfx_volume_saved():
+			_sfx_volume = saver.get_sfx_volume()
 	_apply_volume_to_player(_player_a, _volume)
 	_apply_volume_to_player(_player_b, 0.0)
+
+	# Pool SFX: 3 player round-robin per sovrapposizioni rapide.
+	for i: int in 3:
+		var p := AudioStreamPlayer.new()
+		p.name = "SfxPlayer%d" % i
+		add_child(p)
+		_sfx_players.append(p)
 
 
 # ---------------------------------------------------------------------------
@@ -144,6 +161,40 @@ func set_volume(p_linear: float) -> void:
 
 func get_volume() -> float:
 	return _volume
+
+
+# Riproduce un effetto sonoro da assets/audio/sfx/<name>.ogg.
+# Usa un pool round-robin di 3 player — permette mosse rapide sovrapposte.
+func play_sfx(name: String) -> void:
+	var path: String = SFX_DIR + name + ".ogg"
+	var stream: AudioStream
+	if _sfx_cache.has(path):
+		stream = _sfx_cache[path]
+	else:
+		if not ResourceLoader.exists(path):
+			push_warning("AudioManager: SFX non trovato: %s" % path)
+			return
+		stream = ResourceLoader.load(path) as AudioStream
+		if stream == null:
+			return
+		_sfx_cache[path] = stream
+
+	var player: AudioStreamPlayer = _sfx_players[_sfx_index]
+	_sfx_index = (_sfx_index + 1) % _sfx_players.size()
+	player.stream    = stream
+	player.volume_db = _linear_to_db(_sfx_volume)
+	player.play()
+
+
+func set_sfx_volume(p_linear: float) -> void:
+	_sfx_volume = clampf(p_linear, 0.0, 1.0)
+	var saver: Node = get_node_or_null("/root/SaveManager")
+	if saver != null:
+		saver.set_sfx_volume(_sfx_volume)
+
+
+func get_sfx_volume() -> float:
+	return _sfx_volume
 
 
 # ---------------------------------------------------------------------------

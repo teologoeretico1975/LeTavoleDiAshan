@@ -51,6 +51,7 @@ const COINS_KEY      := "__coins__"
 const HINTS_USED_KEY := "__hints_used__"
 const LANGUAGE_KEY   := "__language__"
 const VOLUME_KEY     := "__music_volume__"
+const SFX_VOLUME_KEY := "__sfx_volume__"
 
 # Monete assegnate per stella al primo raggiungimento di quel record.
 const COINS_PER_STAR := 10
@@ -330,6 +331,22 @@ func has_volume_saved() -> bool:
 
 func set_music_volume(p_linear: float) -> void:
 	_data[VOLUME_KEY] = p_linear
+	_save_to_disk()
+
+
+# Volume SFX
+# ---------------------------------------------------------------------------
+
+func get_sfx_volume() -> float:
+	return float(_data.get(SFX_VOLUME_KEY, 0.8))
+
+
+func has_sfx_volume_saved() -> bool:
+	return _data.has(SFX_VOLUME_KEY)
+
+
+func set_sfx_volume(p_linear: float) -> void:
+	_data[SFX_VOLUME_KEY] = p_linear
 	_save_to_disk()
 
 

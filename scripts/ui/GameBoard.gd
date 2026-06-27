@@ -481,6 +481,9 @@ func _on_tile_input(event: InputEvent, panel: Control) -> void:
 func _try_move(tile_index: int) -> void:
 	# "not in" = !list.Contains() in C# — controlla se tile_index NON è tra le mosse valide.
 	if tile_index not in _state.valid_moves():
+		var am: Node = get_node_or_null("/root/AudioManager")
+		if am != null:
+			am.play_sfx("tile_invalid")
 		return
 
 	var blank_index: int = _state.blank_index
@@ -493,6 +496,10 @@ func _try_move(tile_index: int) -> void:
 	# Tween: anima la proprietà "position" del nodo tile da dove è ora a target_pos.
 	# create_tween() crea un Tween collegato al ciclo di vita di questo nodo —
 	# equivalente di un DispatcherTimer o Storyboard in WPF, ma più semplice.
+	var am: Node = get_node_or_null("/root/AudioManager")
+	if am != null:
+		am.play_sfx("tile_move")
+
 	var tween := create_tween()
 	tween.set_ease(Tween.EASE_OUT)
 	tween.set_trans(Tween.TRANS_QUART)  # curva di decelerazione, tipo ease-out cubica
@@ -563,6 +570,10 @@ func _on_puzzle_solved() -> void:
 	# Lock permanente: nessuna mossa ulteriore accettata.
 	_is_solved = true
 	_refresh_hint_button()   # disabilita il pulsante hint
+
+	var am: Node = get_node_or_null("/root/AudioManager")
+	if am != null:
+		am.play_sfx("level_complete")
 
 	var stars := _compute_stars(_move_count)
 	var coins_earned: int = 0
@@ -808,6 +819,9 @@ func _reveal_stars(p_stars: int) -> void:
 		var stars_so_far: int = i + 1
 		tween.tween_callback(func() -> void:
 			lbl.text = "★".repeat(stars_so_far) + "☆".repeat(3 - stars_so_far)
+			var _am: Node = get_node_or_null("/root/AudioManager")
+			if _am != null:
+				_am.play_sfx("star")
 		)
 
 
@@ -931,6 +945,10 @@ func _on_hint_pressed() -> void:
 	# Aggiorna label monete e pulsante dopo l'uso.
 	_refresh_coins_label()
 	_refresh_hint_button()
+
+	var am: Node = get_node_or_null("/root/AudioManager")
+	if am != null:
+		am.play_sfx("hint")
 
 	# Chiedi la mossa suggerita a HintSolver.
 	var hint_solver := HintSolver.new()
