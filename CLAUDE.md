@@ -300,14 +300,47 @@ MainMenu (Main Scene) → ChapterSelect → LevelSelect → GameBoard → LevelS
 | Titoli evocativi Cap II–VI | Tutti i 111 livelli hanno titoli lore definitivi. Cap V: 19 livelli, Cap VI: 20 livelli |
 | Pulsante "Esci" MainMenu | `get_tree().quit()`, stesso stile degli altri pulsanti, separatore visivo sopra |
 
-### Prossimi step
+### Completato in sessione (2026-06-27)
 
-| Componente | Priorità | Note |
+| Componente | Note |
+|---|---|
+| Sfondo atmosferico | `main_menu_bg.jpg` su tutte le schermate; overlay ColorRect per capitolo in GameBoard |
+| Localizzazione IT/EN/ES | 137 chiavi CSV, `LocalizationManager` autoload, selezione lingua in Settings |
+| `AudioManager` (Autoload) | Musica ambientale per capitolo, crossfade 1.5s, volume persistito |
+| `Settings.tscn` + script | Volume musica (slider + %) e lingua; accessibile da MainMenu e GameBoard (⚙) |
+| `GameManager` | `goto_settings()` / `return_from_settings()` con scena di ritorno |
+
+### Strategia di monetizzazione
+
+Modello **freemium**:
+- **Capitoli I–II gratuiti** (32 livelli) — sufficiente per dimostrare il gameplay e il lore
+- **Sblocco completo IAP 0.99€** — capitoli III–VI (79 livelli), acquisto una tantum, nessun consumabile
+- **Daily Puzzle gratuito permanente** — leva di retention giornaliera, disponibile a tutti gli utenti anche senza acquisto
+- Nessun ads, nessun pay-to-win: il gioco è volutamente premium nel tono, coerente con l'estetica dark fantasy
+
+### Roadmap
+
+#### Pre-lancio
+
+| Priorità | Componente | Note |
 |---|---|---|
-| `AudioManager` (Autoload) | media | musica di sottofondo per capitolo, SFX tile/hint/complete |
-| Daily puzzle | media | generazione deterministica da data, schermata dedicata |
-| Google Play | media | account developer, firma APK release, store listing |
-| MainMenu espanso | bassa | Continua/Nuova Partita, Impostazioni, Credits |
+| 1 | **Tile art** | Texture pietra incisa sui tile della GameBoard — visual identity core |
+| 2 | **SFX** | Effetti sonori: tile move, hint, level complete, stelle; slider volume SFX in Settings |
+| 3 | **Daily Puzzle** | Puzzle giornaliero gratuito permanente, generazione deterministica da data, schermata dedicata |
+| 4 | **IAP** | Sblocco completo 0.99€, gate dopo Capitolo II; Google Play Billing integration |
+
+#### Lancio
+
+| Priorità | Componente | Note |
+|---|---|---|
+| 5 | **Google Play setup** | Account developer, firma APK release, listing ASO-ottimizzato per search intent |
+
+#### Post-lancio
+
+| Priorità | Componente | Note |
+|---|---|---|
+| 6 | **Animazioni** | Movimento tile fluido, transizioni tra schermate |
+| 7 | **MainMenu espanso** | Continua, Nuova Partita, Credits |
 
 ---
 
