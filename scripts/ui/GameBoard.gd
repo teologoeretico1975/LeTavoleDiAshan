@@ -341,6 +341,20 @@ func _build_board() -> void:
 
 	add_child(_board_container)
 
+	# Sfondo pietra continua: TextureRect in TILE mode, copre l'intera area della board.
+	# Aggiunto prima dei tile → z_index inferiore, resta sotto tutti i tile.
+	var bg_tex := ResourceLoader.load("res://assets/texture/stonetile256x256.png") as Texture2D
+	if bg_tex != null:
+		var board_bg := TextureRect.new()
+		board_bg.name         = "BoardBackground"
+		board_bg.texture      = bg_tex
+		board_bg.stretch_mode = TextureRect.STRETCH_TILE
+		board_bg.expand_mode  = TextureRect.EXPAND_IGNORE_SIZE
+		board_bg.size         = Vector2(board_px, board_px)
+		board_bg.custom_minimum_size = Vector2(board_px, board_px)
+		board_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_board_container.add_child(board_bg)
+
 	_tile_nodes = []
 	for i: int in _grid_size * _grid_size:
 		var row: int = i / _grid_size
