@@ -369,17 +369,20 @@ func _make_tile(board_index: int) -> Panel:
 	var tex_rect := TextureRect.new()
 	tex_rect.name         = "StoneTexture"
 	tex_rect.size         = Vector2(TILE_SIZE, TILE_SIZE)
-	tex_rect.stretch_mode = TextureRect.STRETCH_SCALE
+	tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	tex_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var tex := ResourceLoader.load("res://assets/texture/stonetile256x256.png") as Texture2D
 	if tex != null:
 		tex_rect.texture = tex
 	panel.add_child(tex_rect)
 
-	# Label numero — dimensione esplicita, centrata, Cinzel Decorative oro.
+	# Label numero — centrata sul tile, Cinzel Decorative oro.
+	# custom_minimum_size impedisce a Godot di ridimensionare la Label al contenuto.
 	var label := Label.new()
 	label.name                 = "Label"
+	label.position             = Vector2(0.0, 0.0)
 	label.size                 = Vector2(TILE_SIZE, TILE_SIZE)
+	label.custom_minimum_size  = Vector2(TILE_SIZE, TILE_SIZE)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment   = VERTICAL_ALIGNMENT_CENTER
 	label.mouse_filter         = Control.MOUSE_FILTER_IGNORE
