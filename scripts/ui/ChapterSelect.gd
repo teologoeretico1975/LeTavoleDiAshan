@@ -92,26 +92,28 @@ func _setup_header() -> void:
 # ---------------------------------------------------------------------------
 
 func _build_chapter_list() -> void:
-	var loader: Node = get_node_or_null("/root/LevelLoader")
-	var saver:  Node = get_node_or_null("/root/SaveManager")
+	var saver: Node = get_node_or_null("/root/SaveManager")
 
-	# VBoxContainer: dispone i figli dall'alto verso il basso, uno per riga.
-	# Ogni add_child() aggiunge la card nella prossima posizione verticale.
+	# ScrollContainer: si estende dal bordo inferiore dell'header fino al fondo
+	# dello schermo, evitando che le card vengano tagliate su schermi bassi.
+	var scroll := ScrollContainer.new()
+	scroll.name = "ChapterScroll"
+	scroll.anchor_left   = 0.0
+	scroll.anchor_right  = 1.0
+	scroll.anchor_top    = 0.0
+	scroll.anchor_bottom = 1.0
+	scroll.offset_left   = 20.0
+	scroll.offset_right  = -20.0
+	scroll.offset_top    = 80.0
+	scroll.offset_bottom = -12.0
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	add_child(scroll)
+
 	var vbox := VBoxContainer.new()
 	vbox.name = "ChapterList"
+	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	vbox.add_theme_constant_override("separation", int(CARD_GAP))
-
-	# Centra il VBox orizzontalmente, posizionato sotto l'header.
-	var total_h: float = NUM_CHAPTERS * CARD_HEIGHT + (NUM_CHAPTERS - 1) * CARD_GAP
-	vbox.anchor_left  = 0.5
-	vbox.anchor_right = 0.5
-	vbox.anchor_top   = 0.0
-	vbox.offset_left  = -CARD_WIDTH / 2.0
-	vbox.offset_right =  CARD_WIDTH / 2.0
-	vbox.offset_top   = 80.0
-	vbox.offset_bottom = 80.0 + total_h
-
-	add_child(vbox)
+	scroll.add_child(vbox)
 
 	for ch: int in range(1, NUM_CHAPTERS + 1):
 		var title: String = tr("CHAPTER_%d_TITLE" % ch)
@@ -139,7 +141,8 @@ func _make_chapter_card(
 
 	var panel := Panel.new()
 	panel.name = "Chapter_%d" % ch
-	panel.custom_minimum_size = Vector2(CARD_WIDTH, CARD_HEIGHT)
+	panel.custom_minimum_size    = Vector2(0, CARD_HEIGHT)
+	panel.size_flags_horizontal  = Control.SIZE_EXPAND_FILL
 
 	var style := StyleBoxFlat.new()
 	style.bg_color = COL_CARD if is_unlocked else COL_CARD_LOCK
