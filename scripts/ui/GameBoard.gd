@@ -958,70 +958,37 @@ func _setup_back_button() -> void:
 	add_child(btn)
 
 	btn.pressed.connect(_on_back_pressed)
-	_setup_volume_slider()
+
+	# Pulsante ⚙ Settings — angolo in alto a destra, accanto alle mosse.
+	var btn_cfg := Button.new()
+	btn_cfg.name = "SettingsButton"
+	btn_cfg.text = "⚙"
+	btn_cfg.add_theme_font_size_override("font_size", 22)
+	btn_cfg.add_theme_color_override("font_color", COL_TILE)
+
+	var s_cfg_n := StyleBoxFlat.new()
+	s_cfg_n.bg_color = Color(0, 0, 0, 0)
+	var s_cfg_h := StyleBoxFlat.new()
+	s_cfg_h.bg_color = Color(1.0, 0.85, 0.1, 0.15)
+	s_cfg_h.corner_radius_top_left    = 6; s_cfg_h.corner_radius_top_right    = 6
+	s_cfg_h.corner_radius_bottom_left = 6; s_cfg_h.corner_radius_bottom_right = 6
+	btn_cfg.add_theme_stylebox_override("normal",  s_cfg_n)
+	btn_cfg.add_theme_stylebox_override("hover",   s_cfg_h)
+	btn_cfg.add_theme_stylebox_override("pressed", s_cfg_h)
+
+	# Ancorato in alto a destra, vicino al contatore mosse.
+	btn_cfg.anchor_left   = 1.0; btn_cfg.anchor_right  = 1.0
+	btn_cfg.anchor_top    = 0.0; btn_cfg.anchor_bottom = 0.0
+	btn_cfg.offset_left   = -52.0; btn_cfg.offset_right  = -12.0
+	btn_cfg.offset_top    = 20.0;  btn_cfg.offset_bottom = 52.0
+	add_child(btn_cfg)
+	btn_cfg.pressed.connect(_on_settings_pressed)
 
 
-func _setup_volume_slider() -> void:
-	var am: Node = get_node_or_null("/root/AudioManager")
-	var init_val: float = (am.get_volume() if am != null else 0.8) * 100.0
-
-	var hbox := HBoxContainer.new()
-	hbox.add_theme_constant_override("separation", 6)
-	hbox.position = Vector2(20.0, 90.0)
-	hbox.size     = Vector2(160.0, 24.0)
-	add_child(hbox)
-
-	var icon := Label.new()
-	icon.text = "🔊"
-	icon.add_theme_font_size_override("font_size", 14)
-	icon.add_theme_color_override("font_color", COL_TILE)
-	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	hbox.add_child(icon)
-
-	var slider := HSlider.new()
-	slider.min_value = 0.0
-	slider.max_value = 100.0
-	slider.step      = 1.0
-	slider.value     = init_val
-	slider.custom_minimum_size = Vector2(120, 20)
-	slider.add_theme_constant_override("grabber_offset", 0)
-
-	var style_bg := StyleBoxFlat.new()
-	style_bg.bg_color = Color(0.05, 0.03, 0.0, 0.85)
-	style_bg.border_color = COL_TILE
-	style_bg.border_width_left = 1; style_bg.border_width_right  = 1
-	style_bg.border_width_top  = 1; style_bg.border_width_bottom = 1
-	style_bg.corner_radius_top_left    = 3; style_bg.corner_radius_top_right    = 3
-	style_bg.corner_radius_bottom_left = 3; style_bg.corner_radius_bottom_right = 3
-	style_bg.content_margin_left  = 2; style_bg.content_margin_right  = 2
-	style_bg.content_margin_top   = 5; style_bg.content_margin_bottom = 5
-	slider.add_theme_stylebox_override("slider", style_bg)
-
-	var style_fill := StyleBoxFlat.new()
-	style_fill.bg_color = COL_TILE
-	style_fill.corner_radius_top_left    = 3; style_fill.corner_radius_top_right    = 3
-	style_fill.corner_radius_bottom_left = 3; style_fill.corner_radius_bottom_right = 3
-	slider.add_theme_stylebox_override("grabber_area", style_fill)
-	slider.add_theme_stylebox_override("grabber_area_highlight", style_fill)
-	slider.add_theme_icon_override("grabber", _make_grabber_texture(COL_TILE))
-
-	slider.value_changed.connect(func(v: float) -> void:
-		var audio: Node = get_node_or_null("/root/AudioManager")
-		if audio != null:
-			audio.set_volume(v / 100.0)
-	)
-	hbox.add_child(slider)
-
-
-func _make_grabber_texture(p_color: Color) -> ImageTexture:
-	var sz := 14
-	var img := Image.create(sz, sz, false, Image.FORMAT_RGBA8)
-	var center := Vector2(sz / 2.0, sz / 2.0)
-	var radius  := sz / 2.0 - 1.0
-	for y in sz:
-		for x in sz:
-			img.set_pixel(x, y, p_color if Vector2(x, y).distance_to(center) <= radius else Color(0,0,0,0))
-	return ImageTexture.create_from_image(img)
+func _on_settings_pressed() -> void:
+	var gm: Node = get_node_or_null("/root/GameManager")
+	if gm != null:
+		gm.goto_settings("res://scenes/game/GameBoard.tscn")
 
 
 func _on_back_pressed() -> void:

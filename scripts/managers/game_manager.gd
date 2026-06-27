@@ -31,6 +31,9 @@ extends Node
 var selected_chapter: int = 1
 var selected_level:   int = 1
 
+# Scena da cui si è entrati in Settings — usata da return_from_settings().
+var _settings_return_scene: String = "res://scenes/ui/MainMenu.tscn"
+
 
 # ---------------------------------------------------------------------------
 # Navigazione
@@ -61,3 +64,14 @@ func goto_chapter_select() -> void:
 # Chiamato da ChapterSelect (pulsante "< Menu").
 func goto_main_menu() -> void:
 	get_tree().change_scene_to_file("res://scenes/ui/MainMenu.tscn")
+
+
+# Entra nella schermata Settings ricordando da dove si viene.
+func goto_settings(p_return_scene: String = "res://scenes/ui/MainMenu.tscn") -> void:
+	_settings_return_scene = p_return_scene
+	get_tree().change_scene_to_file("res://scenes/ui/Settings.tscn")
+
+
+# Torna alla scena chiamante dopo aver chiuso Settings.
+func return_from_settings() -> void:
+	get_tree().change_scene_to_file(_settings_return_scene)

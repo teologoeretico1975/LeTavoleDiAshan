@@ -4,6 +4,10 @@ TAGLINE,Un puzzle dimenticato attende,A forgotten puzzle awaits,Un enigma olvida
 BTN_START,Inizia,Begin,Comenzar
 BTN_QUIT,Esci,Quit,Salir
 BTN_BACK_MENU,< Menu,< Menu,< Menú
+BTN_SETTINGS,Impostazioni,Settings,Ajustes
+SETTINGS_TITLE,Impostazioni,Settings,Ajustes
+SETTINGS_MUSIC_VOLUME,Volume musica,Music Volume,Volumen de música
+SETTINGS_BACK,< Indietro,< Back,< Volver
 BTN_BACK_CHAPTERS,< Capitoli,< Chapters,< Capítulos
 BTN_BACK_MAP,< Mappa,< Map,< Mapa
 BTN_NEXT,Avanti →,Next →,Siguiente →
