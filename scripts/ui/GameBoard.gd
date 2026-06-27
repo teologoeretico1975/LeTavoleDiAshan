@@ -59,7 +59,7 @@ var _level_data: Dictionary = {}
 # Contatore mosse dell'utente nella partita corrente.
 var _move_count: int = 0
 
-# Array di Control (tile), uno per posizione nella griglia (0..8 per un 3x3).
+# Array di Panel, uno per posizione nella griglia (0..8 per un 3x3).
 # INVARIANTE: _tile_nodes[i] è sempre il nodo visivo per la posizione board i.
 # Manteniamo questo invariante facendo swap dopo ogni mossa animata.
 var _tile_nodes: Array
@@ -147,7 +147,7 @@ func apply_move_instant(tile_index: int) -> void:
 		return
 	var blank_index: int = _state.blank_index
 	_state = _state.apply_move(tile_index)
-	var tmp: Control = _tile_nodes[tile_index]
+	var tmp: Panel = _tile_nodes[tile_index]
 	_tile_nodes[tile_index] = _tile_nodes[blank_index]
 	_tile_nodes[blank_index] = tmp
 	_refresh_tiles()
@@ -352,30 +352,37 @@ func _build_board() -> void:
 		_tile_nodes.append(tile)
 
 
-func _make_tile(board_index: int) -> Control:
-	var tile := Control.new()
-	tile.name = "Tile%d" % board_index
-	tile.size = Vector2(TILE_SIZE, TILE_SIZE)
-	tile.mouse_filter = Control.MOUSE_FILTER_STOP
+func _make_tile(board_index: int) -> Panel:
+	var panel := Panel.new()
+	panel.name        = "Tile%d" % board_index
+	panel.size        = Vector2(TILE_SIZE, TILE_SIZE)
+	panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	panel.clip_contents = true
 
-	# TextureRect — sprite pietra 256×256, scalato a riempire il tile.
+	# Sfondo Panel trasparente — la texture sostituisce il colore piatto.
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = Color(0.0, 0.0, 0.0, 0.0)
+	panel.add_theme_stylebox_override("panel", bg)
+
+	# TextureRect — dimensione esplicita (no anchor preset: evita dipendenza dal rect del parent
+	# prima che il nodo sia nell'albero di scena).
 	var tex_rect := TextureRect.new()
-	tex_rect.name = "StoneTexture"
-	tex_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	tex_rect.name         = "StoneTexture"
+	tex_rect.size         = Vector2(TILE_SIZE, TILE_SIZE)
 	tex_rect.stretch_mode = TextureRect.STRETCH_SCALE
 	tex_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var tex := ResourceLoader.load("res://assets/texture/stonetile256x256.png") as Texture2D
 	if tex != null:
 		tex_rect.texture = tex
-	tile.add_child(tex_rect)
+	panel.add_child(tex_rect)
 
-	# Label numero — Cinzel Decorative, oro, sopra la texture.
+	# Label numero — dimensione esplicita, centrata, Cinzel Decorative oro.
 	var label := Label.new()
-	label.name = "Label"
-	label.set_anchors_preset(Control.PRESET_FULL_RECT)
+	label.name                 = "Label"
+	label.size                 = Vector2(TILE_SIZE, TILE_SIZE)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment   = VERTICAL_ALIGNMENT_CENTER
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.mouse_filter         = Control.MOUSE_FILTER_IGNORE
 
 	var font := ResourceLoader.load(
 		"res://assets/fonts/Cinzel_Decorative/CinzelDecorative-Regular.ttf"
@@ -392,17 +399,17 @@ func _make_tile(board_index: int) -> Control:
 	label.add_theme_constant_override("shadow_offset_x", 2)
 	label.add_theme_constant_override("shadow_offset_y", 2)
 
-	tile.add_child(label)
-	tile.gui_input.connect(_on_tile_input.bind(tile))
+	panel.add_child(label)
+	panel.gui_input.connect(_on_tile_input.bind(panel))
 
-	return tile
+	return panel
 
 
 # ---------------------------------------------------------------------------
 # Input
 # ---------------------------------------------------------------------------
 
-func _on_tile_input(event: InputEvent, panel: Control) -> void:
+func _on_tile_input(event: InputEvent, panel: Panel) -> void:
 	if _is_animating or _is_solved:
 		return
 
@@ -449,7 +456,7 @@ func _try_move(tile_index: int) -> void:
 		# Scambia i riferimenti nell'array per mantenere l'invariante:
 		# _tile_nodes[i] = nodo visivo per la posizione board i.
 		# Dopo la mossa, il tile che era in tile_index è ora in blank_index e viceversa.
-		var tmp: Control = _tile_nodes[tile_index]
+		var tmp: Panel = _tile_nodes[tile_index]
 		_tile_nodes[tile_index] = _tile_nodes[blank_index]
 		_tile_nodes[blank_index] = tmp
 
@@ -474,7 +481,7 @@ func _try_move(tile_index: int) -> void:
 func _refresh_tiles() -> void:
 	for i: int in _grid_size * _grid_size:
 		var val: int = _state.tiles[i]
-		var panel: Control = _tile_nodes[i]
+		var panel: Panel = _tile_nodes[i]
 		var label: Label = panel.get_node("Label")
 
 		# Riposiziona sempre il panel alla cella di griglia corrispondente a i.
@@ -914,7 +921,7 @@ func _flash_hint_button_denied() -> void:
 
 # Flash dorato su una singola tile suggerita dall'hint.
 # Stesso pattern di _play_solve_flash() ma circoscritto al pannello della tile.
-func _flash_tile_hint(p_panel: Control) -> void:
+func _flash_tile_hint(p_panel: Panel) -> void:
 	var flash := ColorRect.new()
 	flash.color = Color(1.0, 0.85, 0.1, 0.0)
 	flash.set_anchors_preset(Control.PRESET_FULL_RECT)
