@@ -118,6 +118,10 @@ func _ready() -> void:
 	_chapter_overlay = get_node_or_null("ChapterOverlay") as ColorRect
 	_set_chapter_overlay(chapter)
 
+	var am: Node = get_node_or_null("/root/AudioManager")
+	if am != null:
+		am.fade_to_chapter(chapter)
+
 	_build_board()
 	_refresh_tiles()
 	_setup_hud()

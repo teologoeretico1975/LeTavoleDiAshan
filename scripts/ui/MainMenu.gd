@@ -64,7 +64,12 @@ func _ready() -> void:
 	vbox.add_child(hbox_quit)
 	_btn_quit = hbox_quit.get_child(0) as Button
 
+	var am: Node = get_node_or_null("/root/AudioManager")
+	if am != null:
+		am.stop_music()
+
 	_setup_language_buttons()
+	_setup_volume_slider()
 	_refresh_texts()
 	_refresh_lang_buttons()
 
@@ -122,6 +127,57 @@ func _setup_language_buttons() -> void:
 		btn.pressed.connect(_on_lang_pressed.bind(locale))
 		hbox.add_child(btn)
 		_lang_buttons.append(btn)
+
+
+# Slider volume (0–100%) in basso a destra, sopra i pulsanti lingua.
+func _setup_volume_slider() -> void:
+	var am: Node = get_node_or_null("/root/AudioManager")
+	var init_value: float = (am.get_volume() if am != null else 0.8) * 100.0
+
+	var hbox := HBoxContainer.new()
+	hbox.add_theme_constant_override("separation", 8)
+	hbox.anchor_left   = 1.0
+	hbox.anchor_top    = 1.0
+	hbox.anchor_right  = 1.0
+	hbox.anchor_bottom = 1.0
+	hbox.offset_left   = -252.0
+	hbox.offset_top    = -102.0
+	hbox.offset_right  = -12.0
+	hbox.offset_bottom = -62.0
+	add_child(hbox)
+
+	var icon := Label.new()
+	icon.text = "🔊"
+	icon.add_theme_font_size_override("font_size", 18)
+	icon.add_theme_color_override("font_color", COL_GOLD)
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hbox.add_child(icon)
+
+	var slider := HSlider.new()
+	slider.min_value  = 0.0
+	slider.max_value  = 100.0
+	slider.step       = 1.0
+	slider.value      = init_value
+	slider.custom_minimum_size = Vector2(170, 0)
+	# Stile minimale: colore oro per il fill, grigio scuro per il track.
+	var style_bg := StyleBoxFlat.new()
+	style_bg.bg_color = Color(0.15, 0.1, 0.0, 0.8)
+	style_bg.corner_radius_top_left    = 4; style_bg.corner_radius_top_right    = 4
+	style_bg.corner_radius_bottom_left = 4; style_bg.corner_radius_bottom_right = 4
+	slider.add_theme_stylebox_override("slider", style_bg)
+	var style_fill := StyleBoxFlat.new()
+	style_fill.bg_color = COL_GOLD
+	style_fill.corner_radius_top_left    = 4; style_fill.corner_radius_top_right    = 4
+	style_fill.corner_radius_bottom_left = 4; style_fill.corner_radius_bottom_right = 4
+	slider.add_theme_stylebox_override("grabber_area", style_fill)
+	slider.value_changed.connect(_on_volume_changed)
+	hbox.add_child(slider)
+
+
+func _on_volume_changed(p_value: float) -> void:
+	var am: Node = get_node_or_null("/root/AudioManager")
+	if am != null:
+		am.set_volume(p_value / 100.0)
 
 
 func _on_lang_pressed(locale: String) -> void:

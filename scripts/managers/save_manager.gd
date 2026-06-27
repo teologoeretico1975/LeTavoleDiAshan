@@ -50,6 +50,7 @@ const STARS_2 := "good_moves"
 const COINS_KEY      := "__coins__"
 const HINTS_USED_KEY := "__hints_used__"
 const LANGUAGE_KEY   := "__language__"
+const VOLUME_KEY     := "__music_volume__"
 
 # Monete assegnate per stella al primo raggiungimento di quel record.
 const COINS_PER_STAR := 10
@@ -312,6 +313,23 @@ func has_language_saved() -> bool:
 # Persiste la preferenza lingua. La locale viene applicata da LocalizationManager.
 func set_language(p_locale: String) -> void:
 	_data[LANGUAGE_KEY] = p_locale
+	_save_to_disk()
+
+
+# ---------------------------------------------------------------------------
+# Volume musica
+# ---------------------------------------------------------------------------
+
+func get_music_volume() -> float:
+	return float(_data.get(VOLUME_KEY, 0.8))
+
+
+func has_volume_saved() -> bool:
+	return _data.has(VOLUME_KEY)
+
+
+func set_music_volume(p_linear: float) -> void:
+	_data[VOLUME_KEY] = p_linear
 	_save_to_disk()
 
 
