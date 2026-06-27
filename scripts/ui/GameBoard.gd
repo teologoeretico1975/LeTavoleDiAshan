@@ -32,7 +32,7 @@ extends Control
 # ---------------------------------------------------------------------------
 
 const TILE_SIZE: float = 120.0
-const TILE_GAP: float = 6.0
+const TILE_GAP: float = 3.0
 
 # Dimensione griglia: derivata dai dati del livello in _load_level().
 var _grid_size: int = 3
