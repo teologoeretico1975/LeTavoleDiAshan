@@ -1,8 +1,9 @@
-[gd_scene format=3 uid="uid://main_menu_scene"]
+[gd_scene format=3 uid="uid://h86moyrefoyc"]
 
-[ext_resource type="Script" path="res://scripts/ui/MainMenu.gd" id="1_mainmenu"]
+[ext_resource type="Script" uid="uid://dt768tnjqbyi6" path="res://scripts/ui/MainMenu.gd" id="1_mainmenu"]
+[ext_resource type="Texture2D" uid="uid://dspet6yajtn7s" path="res://assets/backgrounds/main_menu_bg.jpg" id="2_6jbdy"]
 
-[node name="MainMenu" type="Control"]
+[node name="MainMenu" type="Control" unique_id=1516687965]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -10,3 +11,13 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_mainmenu")
+
+[node name="TextureRect" type="TextureRect" parent="." unique_id=6225018]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_6jbdy")
+stretch_mode = 6
