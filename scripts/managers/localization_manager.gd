@@ -12,8 +12,6 @@
 
 extends Node
 
-class_name LocalizationManager
-
 const SUPPORTED_LOCALES: Array = ["it", "en", "es"]
 const FALLBACK_LOCALE:   String = "en"
 
