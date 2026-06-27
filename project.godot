@@ -23,13 +23,13 @@ SaveManager="*uid://bhiejw0hpbya0"
 LocalizationManager="*res://scripts/managers/localization_manager.gd"
 AudioManager="*res://scripts/managers/audio_manager.gd"
 
-[internationalization]
-
-locale/translations=PackedStringArray("res://assets/translations/translations.en.translation", "res://assets/translations/translations.es.translation", "res://assets/translations/translations.it.translation")
-
 [display]
 
 window/handheld/orientation=6
+
+[internationalization]
+
+locale/translations=PackedStringArray("res://assets/translations/translations.en.translation", "res://assets/translations/translations.es.translation", "res://assets/translations/translations.it.translation")
 
 [physics]
 
