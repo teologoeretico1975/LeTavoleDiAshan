@@ -32,7 +32,7 @@ extends Control
 # ---------------------------------------------------------------------------
 
 const TILE_SIZE: float = 120.0
-const TILE_GAP: float = 10.0
+const TILE_GAP: float = 6.0
 
 # Dimensione griglia: derivata dai dati del livello in _load_level().
 var _grid_size: int = 3
@@ -353,27 +353,18 @@ func _build_board() -> void:
 
 
 func _make_tile(board_index: int) -> Control:
-	# TextureRect come root del tile: la texture è intrinseca al nodo — nessun figlio
-	# per lo sfondo, nessun layout pass che può ridimensionare un figlio TextureRect.
-	# STRETCH_SCALE funziona perfettamente: texture 521×521, tile 120×120, entrambi quadrati.
 	var tile := TextureRect.new()
 	tile.name                = "Tile%d" % board_index
 	tile.size                = Vector2(TILE_SIZE, TILE_SIZE)
 	tile.custom_minimum_size = Vector2(TILE_SIZE, TILE_SIZE)
 	tile.expand_mode         = TextureRect.EXPAND_IGNORE_SIZE
-	tile.stretch_mode        = TextureRect.STRETCH_SCALE
+	tile.stretch_mode        = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	tile.mouse_filter        = Control.MOUSE_FILTER_STOP
 
 	var tex := ResourceLoader.load("res://assets/texture/stonetile256x256.png") as Texture2D
 	if tex != null:
 		tile.texture = tex
-
-	# Shader luminanza: rende trasparenti i pixel neri/scuri del PNG (che è RGB senza alpha).
-	var shader := ResourceLoader.load("res://assets/shaders/stone_tile.gdshader") as Shader
-	if shader != null:
-		var mat := ShaderMaterial.new()
-		mat.shader = shader
-		tile.material = mat
+	# Nessun ShaderMaterial: il PNG ha alpha nativo, Godot gestisce la trasparenza direttamente.
 
 	# Label numero — Cinzel Decorative oro, centrata sul tile.
 	var label := Label.new()
