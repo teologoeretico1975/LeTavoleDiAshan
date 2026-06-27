@@ -353,42 +353,87 @@ func _build_board() -> void:
 
 
 func _make_tile(board_index: int) -> Panel:
-	# Panel = contenitore con sfondo stilizzabile — come un Border in WPF.
 	var panel := Panel.new()
 	panel.name = "Tile%d" % board_index
 	panel.size = Vector2(TILE_SIZE, TILE_SIZE)
-
-	# MOUSE_FILTER_STOP = questo nodo consuma gli eventi mouse e non li passa al genitore.
-	# Equivalente di IsHitTestVisible="True" + e.Handled=true in WPF.
 	panel.mouse_filter = Control.MOUSE_FILTER_STOP
 
-	# StyleBoxFlat = background colorato con angoli arrotondati.
-	# In Godot lo stile visivo è separato dal nodo — come ControlTemplate in WPF.
-	# add_theme_stylebox_override() applica lo stile solo a questo nodo, non globalmente.
-	var style := StyleBoxFlat.new()
-	style.bg_color = COL_TILE
-	style.corner_radius_top_left     = 10
-	style.corner_radius_top_right    = 10
-	style.corner_radius_bottom_left  = 10
-	style.corner_radius_bottom_right = 10
-	panel.add_theme_stylebox_override("panel", style)
+	# PARTE 1 — Texture pietra come sfondo del tile.
+	# StyleBoxTexture mostra stonetile.png stirato a coprire l'intero Panel.
+	var tex := ResourceLoader.load("res://assets/texture/stonetile.png") as Texture2D
+	if tex != null:
+		var style_tex := StyleBoxTexture.new()
+		style_tex.texture = tex
+		# Angoli arrotondati tramite expand_margin: nessun margine = copertura totale.
+		style_tex.texture_margin_left   = 0.0
+		style_tex.texture_margin_right  = 0.0
+		style_tex.texture_margin_top    = 0.0
+		style_tex.texture_margin_bottom = 0.0
+		# PARTE 3 — Rilievo: ombra sotto-destra.
+		style_tex.shadow_color  = Color(0.0, 0.0, 0.0, 0.6)
+		style_tex.shadow_size   = 4
+		style_tex.shadow_offset = Vector2(3, 3)
+		panel.add_theme_stylebox_override("panel", style_tex)
 
-	# Label centrata dentro il Panel.
+		# PARTE 3 — Bordi rilievo: highlight top/left + ombra bottom/right.
+		# Godot 4 non ha border per StyleBoxTexture, usiamo un ColorRect overlay
+		# con disegno custom tramite CanvasItem. Soluzione pratica: due ColorRect
+		# sottili fissi sopra e a sinistra (chiaro), sotto e a destra (scuro).
+		var bevel_tl := ColorRect.new()
+		bevel_tl.color = Color(0.4, 0.5, 0.5, 0.3)
+		bevel_tl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		bevel_tl.set_anchors_preset(Control.PRESET_FULL_RECT)
+		bevel_tl.offset_right  = -2; bevel_tl.offset_bottom = -2
+		panel.add_child(bevel_tl)
+
+		var bevel_br := ColorRect.new()
+		bevel_br.color = Color(0.0, 0.0, 0.0, 0.5)
+		bevel_br.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		bevel_br.anchor_left   = 0.0; bevel_br.anchor_top    = 0.0
+		bevel_br.anchor_right  = 1.0; bevel_br.anchor_bottom = 1.0
+		bevel_br.offset_left = 2; bevel_br.offset_top = 2
+		panel.add_child(bevel_br)
+	else:
+		# Fallback se la texture non è ancora importata.
+		var style_fb := StyleBoxFlat.new()
+		style_fb.bg_color = COL_TILE
+		style_fb.corner_radius_top_left     = 10; style_fb.corner_radius_top_right    = 10
+		style_fb.corner_radius_bottom_left  = 10; style_fb.corner_radius_bottom_right = 10
+		panel.add_theme_stylebox_override("panel", style_fb)
+
+	# PARTE 2 — Label con font Cinzel Decorative ed effetto incisione.
 	var label := Label.new()
 	label.name = "Label"
-	# PRESET_FULL_RECT ancora la Label a tutti e quattro i bordi del Panel genitore.
 	label.set_anchors_preset(Control.PRESET_FULL_RECT)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment   = VERTICAL_ALIGNMENT_CENTER
-	label.add_theme_font_size_override("font_size", 52)
-	label.add_theme_color_override("font_color", COL_TILE_TEXT)
-	# MOUSE_FILTER_IGNORE = la Label non intercetta eventi mouse; li passa al Panel padre.
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	# Font Cinzel Decorative — evoca pietra incisa medievale/gotica.
+	var font := ResourceLoader.load(
+		"res://assets/fonts/Cinzel_Decorative/CinzelDecorative-Regular.ttf"
+	) as Font
+	if font != null:
+		label.add_theme_font_override("font", font)
+
+	# Dimensione adattiva: tile più piccoli (4×4) hanno numeri a 2 cifre → font più piccolo.
+	var font_size: int = 52 if _grid_size == 3 else 36
+	label.add_theme_font_size_override("font_size", font_size)
+
+	# Oro brunito — meno brillante dell'oro UI, dà l'effetto di pigmento nella pietra.
+	label.add_theme_color_override("font_color", Color(0.85, 0.72, 0.3, 1.0))
+
+	# Outline quasi-nero: simula il solco dell'incisione attorno alla cifra.
+	label.add_theme_color_override("font_outline_color", Color(0.05, 0.03, 0.01, 1.0))
+	label.add_theme_constant_override("outline_size", 3)
+
+	# Ombra: dà profondità al numero come se fosse in rilievo sulla pietra.
+	label.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.8))
+	label.add_theme_constant_override("shadow_offset_x", 2)
+	label.add_theme_constant_override("shadow_offset_y", 2)
+
 	panel.add_child(label)
 
-	# Passa il panel stesso (non l'indice) così _on_tile_input può ricercarne la
-	# posizione corrente in _tile_nodes al momento del click — l'indice originale
-	# non è affidabile dopo gli swap che avvengono ad ogni mossa.
 	panel.gui_input.connect(_on_tile_input.bind(panel))
 
 	return panel
