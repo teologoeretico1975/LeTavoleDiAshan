@@ -1,0 +1,134 @@
+keys,it,en,es
+GAME_TITLE,Le Tavole di Ashan,The Tablets of Ashan,Las Tablas de Ashan
+TAGLINE,Un puzzle dimenticato attende,A forgotten puzzle awaits,Un enigma olvidado aguarda
+BTN_START,Inizia,Begin,Comenzar
+BTN_QUIT,Esci,Quit,Salir
+BTN_BACK_MENU,< Menu,< Menu,< Menú
+BTN_BACK_CHAPTERS,< Capitoli,< Chapters,< Capítulos
+BTN_BACK_MAP,< Mappa,< Map,< Mapa
+BTN_NEXT,Avanti →,Next →,Siguiente →
+HINT_LABEL_FREE,"Hint (Gratis %d/%d)","Hint (Free %d/%d)","Pista (Gratis %d/%d)"
+HINT_LABEL_COST,Hint (20 ✦),Hint (20 ✦),Pista (20 ✦)
+HUD_MOVES,"Mosse: %d","Moves: %d","Movimientos: %d"
+LEVEL_COMPLETE_TITLE,Livello completato!,Level Complete!,¡Nivel Completado!
+CHAPTER_COMPLETE_TITLE,Capitolo completato!,Chapter Complete!,¡Capítulo Completado!
+OVERLAY_MOVES_PAR,"Mosse: %d  ·  Par: %d","Moves: %d  ·  Par: %d","Movimientos: %d  ·  Par: %d"
+COINS_EARNED,"+ %d monete","+ %d coins","+ %d monedas"
+PROGRESS_LABEL,"%d/%d livelli  ·  %d/%d stelle","%d/%d levels  ·  %d/%d stars","%d/%d niveles  ·  %d/%d estrellas"
+CHAPTER_1_TITLE,Il Risveglio,The Awakening,El Despertar
+CHAPTER_2_TITLE,"L'Età dei Costruttori",The Age of Builders,La Era de los Constructores
+CHAPTER_3_TITLE,La Prima Crepa,The First Crack,La Primera Grieta
+CHAPTER_4_TITLE,Il Silenzio,The Silence,El Silencio
+CHAPTER_5_TITLE,Ciò Che Dimora,That Which Dwells,Lo Que Mora
+CHAPTER_6_TITLE,"L'Ultimo Archivista",The Last Archivist,El Último Archivista
+LEVEL_1_1_TITLE,La Soglia,The Threshold,El Umbral
+LEVEL_1_2_TITLE,Polvere Prima,Primordial Dust,Polvo Primigenio
+LEVEL_1_3_TITLE,Il Primo Frammento,The First Fragment,El Primer Fragmento
+LEVEL_1_4_TITLE,Il Sigillo Spezzato,The Broken Seal,El Sello Roto
+LEVEL_1_5_TITLE,Voci di Pietra,Voices of Stone,Voces de Piedra
+LEVEL_1_6_TITLE,Il Corridoio Sommerso,The Sunken Corridor,El Corredor Sumergido
+LEVEL_1_7_TITLE,Frammenti di un Nome,Fragments of a Name,Fragmentos de un Nombre
+LEVEL_1_8_TITLE,La Lampada Spenta,The Extinguished Lamp,La Lámpara Apagada
+LEVEL_1_9_TITLE,Ciò Che Rimase,What Remained,Lo Que Quedó
+LEVEL_1_10_TITLE,Il Margine del Foglio,The Edge of the Page,El Margen del Pergamino
+LEVEL_1_11_TITLE,Eco Senza Origine,Echo Without Origin,Eco Sin Origen
+LEVEL_1_12_TITLE,La Prima Tavola,The First Tablet,La Primera Tabla
+LEVEL_2_1_TITLE,Il Primo Calcolo,The First Reckoning,El Primer Cálculo
+LEVEL_2_2_TITLE,"Linee nell'Oscurità",Lines in the Dark,Líneas en la Oscuridad
+LEVEL_2_3_TITLE,Fondamenta Invisibili,Invisible Foundations,Cimientos Invisibles
+LEVEL_2_4_TITLE,La Simmetria Perfetta,The Perfect Symmetry,La Simetría Perfecta
+LEVEL_2_5_TITLE,Angoli che Non Esistono,Angles That Do Not Exist,Ángulos que No Existen
+LEVEL_2_6_TITLE,Il Teorema Sepolto,The Buried Theorem,El Teorema Sepultado
+LEVEL_2_7_TITLE,Colonne senza Peso,Weightless Columns,Columnas sin Peso
+LEVEL_2_8_TITLE,"L'Arco Impossibile",The Impossible Arch,El Arco Imposible
+LEVEL_2_9_TITLE,Geometria del Vuoto,Geometry of the Void,Geometría del Vacío
+LEVEL_2_10_TITLE,Il Cerchio che Non si Chiude,The Circle That Never Closes,El Círculo que No se Cierra
+LEVEL_2_11_TITLE,Misure Oltre il Reale,Measures Beyond the Real,Medidas Más Allá de lo Real
+LEVEL_2_12_TITLE,La Mappa dei Costruttori,"The Builders' Chart",El Mapa de los Constructores
+LEVEL_2_13_TITLE,Proporzioni Dimenticate,Forgotten Proportions,Proporciones Olvidadas
+LEVEL_2_14_TITLE,Il Vertice più Alto,The Highest Vertex,El Vértice más Alto
+LEVEL_2_15_TITLE,Dove Convergono le Rette,Where the Lines Converge,Donde Convergen las Líneas
+LEVEL_2_16_TITLE,"L'Equazione Mancante",The Missing Equation,La Ecuación Ausente
+LEVEL_2_17_TITLE,Pietre che Ricordano,Stones That Remember,Piedras que Recuerdan
+LEVEL_2_18_TITLE,Il Progetto Infinito,The Infinite Design,El Designio Infinito
+LEVEL_2_19_TITLE,"L'Ultimo Pilastro",The Last Pillar,El Último Pilar
+LEVEL_2_20_TITLE,La Perfezione Incompiuta,Unfinished Perfection,La Perfección Inconclusa
+LEVEL_3_1_TITLE,Incrinatura,The First Fracture,La Grieta
+LEVEL_3_2_TITLE,Il Dubbio Geometrico,The Geometric Doubt,La Duda Geométrica
+LEVEL_3_3_TITLE,Polvere tra le Giunture,Dust Between the Joints,Polvo Entre las Juntas
+LEVEL_3_4_TITLE,La Linea che Devia,The Line That Strays,La Línea que Desvía
+LEVEL_3_5_TITLE,Corrosione Lenta,Slow Corrosion,Corrosión Lenta
+LEVEL_3_6_TITLE,Segni sul Margine,Marks at the Margin,Señales en el Margen
+LEVEL_3_7_TITLE,"L'Angolo Eroso",The Eroded Corner,El Ángulo Erosionado
+LEVEL_3_8_TITLE,Frattura Sottile,The Hairline Fracture,La Fractura Sutil
+LEVEL_3_9_TITLE,Dove il Muro Cede,Where the Wall Yields,Donde Cede el Muro
+LEVEL_3_10_TITLE,Il Calcolo Sbagliato,The Flawed Calculation,El Cálculo Errado
+LEVEL_3_11_TITLE,Crepe nel Fondamento,Cracks in the Foundation,Grietas en los Cimientos
+LEVEL_3_12_TITLE,La Nota Stonata,The Discordant Note,La Nota Disonante
+LEVEL_3_13_TITLE,Simmetria Spezzata,Broken Symmetry,Simetría Rota
+LEVEL_3_14_TITLE,"Il Peso dell'Errore",The Weight of Error,El Peso del Error
+LEVEL_3_15_TITLE,Cedimento Silenzioso,Silent Collapse,Colapso Silencioso
+LEVEL_3_16_TITLE,Quello che Non Torna,What Does Not Add Up,Lo que No Encaja
+LEVEL_3_17_TITLE,"L'Ombra nella Struttura",The Shadow in the Structure,La Sombra en la Estructura
+LEVEL_3_18_TITLE,La Crepa si Allarga,The Crack Widens,La Grieta se Ensancha
+LEVEL_3_19_TITLE,Prima del Crollo,Before the Collapse,Antes del Derrumbe
+LEVEL_3_20_TITLE,Il Punto di Rottura,The Breaking Point,El Punto de Quiebre
+LEVEL_4_1_TITLE,Stanze Vuote,Empty Chambers,Cámaras Vacías
+LEVEL_4_2_TITLE,"L'Eco Spento",The Faded Echo,El Eco Apagado
+LEVEL_4_3_TITLE,Nessuno Risponde,No One Answers,Nadie Responde
+LEVEL_4_4_TITLE,Polvere Immobile,Still Dust,Polvo Inmóvil
+LEVEL_4_5_TITLE,Il Peso del Nulla,The Weight of Nothing,El Peso de la Nada
+LEVEL_4_6_TITLE,Corridoi Deserti,Deserted Corridors,Corredores Desiertos
+LEVEL_4_7_TITLE,"L'Ultima Voce",The Last Voice,La Última Voz
+LEVEL_4_8_TITLE,Dove Tutto Tacque,Where All Fell Silent,Donde Todo Enmudeció
+LEVEL_4_9_TITLE,Assenza di Orme,Absence of Footprints,Ausencia de Huellas
+LEVEL_4_10_TITLE,Il Silenzio tra le Pagine,The Silence Between Pages,El Silencio Entre las Páginas
+LEVEL_4_11_TITLE,Cenere Fredda,Cold Ash,Ceniza Fría
+LEVEL_4_12_TITLE,La Biblioteca Muta,The Mute Library,La Biblioteca Muda
+LEVEL_4_13_TITLE,Senza Respiro,Without Breath,Sin Aliento
+LEVEL_4_14_TITLE,Il Vuoto Risponde,The Void Answers,El Vacío Responde
+LEVEL_4_15_TITLE,Ombre senza Corpo,Shadows Without Form,Sombras sin Cuerpo
+LEVEL_4_16_TITLE,"L'Archivio Dimenticato",The Forgotten Archive,El Archivo Olvidado
+LEVEL_4_17_TITLE,La Stanza Sigillata,The Sealed Chamber,La Cámara Sellada
+LEVEL_4_18_TITLE,Nomi Cancellati,Erased Names,Nombres Borrados
+LEVEL_4_19_TITLE,La Quiete Prima,The Stillness Before,La Quietud Anterior
+LEVEL_4_20_TITLE,"L'Ultimo Suono",The Last Sound,El Último Sonido
+LEVEL_5_1_TITLE,Sotto le Fondamenta,Beneath the Foundations,Bajo los Cimientos
+LEVEL_5_2_TITLE,Il Respiro nel Buio,The Breath in the Dark,El Aliento en la Oscuridad
+LEVEL_5_3_TITLE,Forma senza Nome,Form Without Name,Forma sin Nombre
+LEVEL_5_4_TITLE,Ciò che Non Dorme,That Which Does Not Sleep,Lo que No Duerme
+LEVEL_5_5_TITLE,Occhi nel Profondo,Eyes in the Deep,Ojos en lo Profundo
+LEVEL_5_6_TITLE,"L'Odore dell'Abisso",The Scent of the Abyss,El Olor del Abismo
+LEVEL_5_7_TITLE,Geometrie Viventi,Living Geometries,Geometrías Vivientes
+LEVEL_5_8_TITLE,Il Muro che Pulsa,The Wall That Pulses,El Muro que Pulsa
+LEVEL_5_9_TITLE,Sussurri dalla Pietra,Whispers from the Stone,Susurros de la Piedra
+LEVEL_5_10_TITLE,"Tentacoli d'Inchiostro",Tentacles of Ink,Tentáculos de Tinta
+LEVEL_5_11_TITLE,La Cosa Sepolta,The Buried Thing,La Cosa Enterrada
+LEVEL_5_12_TITLE,Ombre che si Muovono,Shadows That Move,Sombras que se Mueven
+LEVEL_5_13_TITLE,"L'Architettura Respira",The Architecture Breathes,La Arquitectura Respira
+LEVEL_5_14_TITLE,Dove la Luce Non Arriva,Where the Light Does Not Reach,Donde la Luz No Llega
+LEVEL_5_15_TITLE,Il Nome Impronunciabile,The Unpronounceable Name,El Nombre Impronunciable
+LEVEL_5_16_TITLE,Carne di Pietra,Flesh of Stone,Carne de Piedra
+LEVEL_5_17_TITLE,La Porta che Chiama,The Door That Calls,La Puerta que Llama
+LEVEL_5_18_TITLE,Al di Là del Muro,Beyond the Wall,Más Allá del Muro
+LEVEL_5_19_TITLE,Il Richiamo dal Basso,The Calling from Below,El Llamado desde Abajo
+LEVEL_6_1_TITLE,"L'Ultimo Corridoio",The Final Corridor,El Último Corredor
+LEVEL_6_2_TITLE,La Tavola Finale,The Final Tablet,La Tabla Final
+LEVEL_6_3_TITLE,Verità Insopportabile,Unbearable Truth,Verdad Insoportable
+LEVEL_6_4_TITLE,"Il Compito dell'Archivista","The Archivist's Task",La Tarea del Archivista
+LEVEL_6_5_TITLE,Ogni Frammento al Suo Posto,Every Fragment in Its Place,Cada Fragmento en Su Lugar
+LEVEL_6_6_TITLE,Il Peso della Conoscenza,The Weight of Knowledge,El Peso del Conocimiento
+LEVEL_6_7_TITLE,La Memoria Completa,The Complete Memory,La Memoria Completa
+LEVEL_6_8_TITLE,"Ciò che l'Archivio Nasconde",What the Archive Conceals,Lo que el Archivo Oculta
+LEVEL_6_9_TITLE,Il Prezzo del Sapere,The Price of Knowing,El Precio del Saber
+LEVEL_6_10_TITLE,"Oltre l'Ultima Pagina",Beyond the Last Page,"Más Allá de la Última Página"
+LEVEL_6_11_TITLE,"La Scelta dell'Archivista","The Archivist's Choice","La Elección del Archivista"
+LEVEL_6_12_TITLE,Il Cerchio si Chiude,The Circle Closes,El Círculo se Cierra
+LEVEL_6_13_TITLE,Dove Tutto Convergeva,Where All Things Converged,Donde Todo Convergía
+LEVEL_6_14_TITLE,"L'Ordine Ritrovato",Order Reclaimed,El Orden Recuperado
+LEVEL_6_15_TITLE,La Verità delle Tavole,The Truth of the Tablets,La Verdad de las Tablas
+LEVEL_6_16_TITLE,Il Sigillo Definitivo,The Final Seal,El Sello Definitivo
+LEVEL_6_17_TITLE,"L'Archivista Ricorda",The Archivist Remembers,El Archivista Recuerda
+LEVEL_6_18_TITLE,La Fine della Polvere,The End of Dust,El Fin del Polvo
+LEVEL_6_19_TITLE,"L'Ultima Tavola di Ashan",The Last Tablet of Ashan,La Última Tabla de Ashan
+LEVEL_6_20_TITLE,Ciò che Non Doveva Essere Trovato,What Should Not Have Been Found,Lo que No Debía Ser Hallado
