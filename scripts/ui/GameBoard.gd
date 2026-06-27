@@ -59,7 +59,7 @@ var _level_data: Dictionary = {}
 # Contatore mosse dell'utente nella partita corrente.
 var _move_count: int = 0
 
-# Array di Panel, uno per posizione nella griglia (0..8 per un 3x3).
+# Array di Control (TextureRect), uno per posizione nella griglia (0..8 per un 3x3).
 # INVARIANTE: _tile_nodes[i] è sempre il nodo visivo per la posizione board i.
 # Manteniamo questo invariante facendo swap dopo ogni mossa animata.
 var _tile_nodes: Array
@@ -147,7 +147,7 @@ func apply_move_instant(tile_index: int) -> void:
 		return
 	var blank_index: int = _state.blank_index
 	_state = _state.apply_move(tile_index)
-	var tmp: Panel = _tile_nodes[tile_index]
+	var tmp: Control = _tile_nodes[tile_index]
 	_tile_nodes[tile_index] = _tile_nodes[blank_index]
 	_tile_nodes[blank_index] = tmp
 	_refresh_tiles()
@@ -352,34 +352,22 @@ func _build_board() -> void:
 		_tile_nodes.append(tile)
 
 
-func _make_tile(board_index: int) -> Panel:
-	var panel := Panel.new()
-	panel.name        = "Tile%d" % board_index
-	panel.size        = Vector2(TILE_SIZE, TILE_SIZE)
-	panel.mouse_filter = Control.MOUSE_FILTER_STOP
-	panel.clip_contents = true
+func _make_tile(board_index: int) -> Control:
+	# TextureRect come root del tile: la texture è intrinseca al nodo — nessun figlio
+	# per lo sfondo, nessun layout pass che può ridimensionare un figlio TextureRect.
+	# STRETCH_SCALE funziona perfettamente: texture 521×521, tile 120×120, entrambi quadrati.
+	var tile := TextureRect.new()
+	tile.name                = "Tile%d" % board_index
+	tile.size                = Vector2(TILE_SIZE, TILE_SIZE)
+	tile.custom_minimum_size = Vector2(TILE_SIZE, TILE_SIZE)
+	tile.stretch_mode        = TextureRect.STRETCH_SCALE
+	tile.mouse_filter        = Control.MOUSE_FILTER_STOP
 
-	# Sfondo Panel trasparente — la texture sostituisce il colore piatto.
-	var bg := StyleBoxFlat.new()
-	bg.bg_color = Color(0.0, 0.0, 0.0, 0.0)
-	panel.add_theme_stylebox_override("panel", bg)
-
-	# TextureRect — dimensione esplicita (no anchor preset: evita dipendenza dal rect del parent
-	# prima che il nodo sia nell'albero di scena).
-	var tex_rect := TextureRect.new()
-	tex_rect.name                = "StoneTexture"
-	tex_rect.position            = Vector2(0.0, 0.0)
-	tex_rect.size                = Vector2(TILE_SIZE, TILE_SIZE)
-	tex_rect.custom_minimum_size = Vector2(TILE_SIZE, TILE_SIZE)
-	tex_rect.stretch_mode        = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	tex_rect.mouse_filter        = Control.MOUSE_FILTER_IGNORE
 	var tex := ResourceLoader.load("res://assets/texture/stonetile256x256.png") as Texture2D
 	if tex != null:
-		tex_rect.texture = tex
-	panel.add_child(tex_rect)
+		tile.texture = tex
 
-	# Label numero — centrata sul tile, Cinzel Decorative oro.
-	# custom_minimum_size impedisce a Godot di ridimensionare la Label al contenuto.
+	# Label numero — Cinzel Decorative oro, centrata sul tile.
 	var label := Label.new()
 	label.name                 = "Label"
 	label.position             = Vector2(0.0, 0.0)
@@ -404,17 +392,17 @@ func _make_tile(board_index: int) -> Panel:
 	label.add_theme_constant_override("shadow_offset_x", 2)
 	label.add_theme_constant_override("shadow_offset_y", 2)
 
-	panel.add_child(label)
-	panel.gui_input.connect(_on_tile_input.bind(panel))
+	tile.add_child(label)
+	tile.gui_input.connect(_on_tile_input.bind(tile))
 
-	return panel
+	return tile
 
 
 # ---------------------------------------------------------------------------
 # Input
 # ---------------------------------------------------------------------------
 
-func _on_tile_input(event: InputEvent, panel: Panel) -> void:
+func _on_tile_input(event: InputEvent, panel: Control) -> void:
 	if _is_animating or _is_solved:
 		return
 
@@ -461,7 +449,7 @@ func _try_move(tile_index: int) -> void:
 		# Scambia i riferimenti nell'array per mantenere l'invariante:
 		# _tile_nodes[i] = nodo visivo per la posizione board i.
 		# Dopo la mossa, il tile che era in tile_index è ora in blank_index e viceversa.
-		var tmp: Panel = _tile_nodes[tile_index]
+		var tmp: Control = _tile_nodes[tile_index]
 		_tile_nodes[tile_index] = _tile_nodes[blank_index]
 		_tile_nodes[blank_index] = tmp
 
@@ -486,7 +474,7 @@ func _try_move(tile_index: int) -> void:
 func _refresh_tiles() -> void:
 	for i: int in _grid_size * _grid_size:
 		var val: int = _state.tiles[i]
-		var panel: Panel = _tile_nodes[i]
+		var panel: Control = _tile_nodes[i]
 		var label: Label = panel.get_node("Label")
 
 		# Riposiziona sempre il panel alla cella di griglia corrispondente a i.
@@ -926,7 +914,7 @@ func _flash_hint_button_denied() -> void:
 
 # Flash dorato su una singola tile suggerita dall'hint.
 # Stesso pattern di _play_solve_flash() ma circoscritto al pannello della tile.
-func _flash_tile_hint(p_panel: Panel) -> void:
+func _flash_tile_hint(p_panel: Control) -> void:
 	var flash := ColorRect.new()
 	flash.color = Color(1.0, 0.85, 0.1, 0.0)
 	flash.set_anchors_preset(Control.PRESET_FULL_RECT)
