@@ -107,6 +107,7 @@ func _build_chapter_list() -> void:
 	scroll.offset_top    = 80.0
 	scroll.offset_bottom = -12.0
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.vertical_scroll_mode   = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 	add_child(scroll)
 
 	var vbox := VBoxContainer.new()
