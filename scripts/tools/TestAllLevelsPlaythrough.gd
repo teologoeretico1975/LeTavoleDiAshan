@@ -135,7 +135,7 @@ func _check_invariants(board: GameBoard, grid_size: int) -> String:
 		var row: int = i / grid_size
 		var col: int = i % grid_size
 		var expected := Vector2(col * (tile_size + tile_gap), row * (tile_size + tile_gap))
-		var actual: Vector2 = (board._tile_nodes[i] as Panel).position
+		var actual: Vector2 = (board._tile_nodes[i] as TextureRect).position
 		if not actual.is_equal_approx(expected):
 			return "_tile_nodes[%d] è a %s ma atteso %s" % [i, actual, expected]
 
@@ -144,7 +144,7 @@ func _check_invariants(board: GameBoard, grid_size: int) -> String:
 	# check indipendente nel caso l'invariante 3 avesse un bug nel calcolo atteso.
 	var seen_positions: Dictionary = {}
 	for i: int in n:
-		var pos: Vector2 = (board._tile_nodes[i] as Panel).position
+		var pos: Vector2 = (board._tile_nodes[i] as TextureRect).position
 		var key: String  = "%d,%d" % [int(pos.x), int(pos.y)]
 		if seen_positions.has(key):
 			return "posizione %s occupata da _tile_nodes[%d] e [%d]" \
@@ -156,7 +156,7 @@ func _check_invariants(board: GameBoard, grid_size: int) -> String:
 	# deve mostrare il valore che BoardState dice essere in posizione i.
 	for i: int in n:
 		var val: int   = board._state.tiles[i]
-		var panel: Panel = board._tile_nodes[i] as Panel
+		var panel: TextureRect = board._tile_nodes[i] as TextureRect
 
 		if val == 0:
 			if panel.visible:
