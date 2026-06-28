@@ -493,6 +493,16 @@ Modello **freemium**:
 | Fix MainMenu layout | Pulsanti 200×56 → 280×62; VBox separation 32 → 16; spacer ridotti — "Esci" sempre visibile, testo non troncato |
 | Fix GDScript type inference | Con autoload recuperati come `Node`, usare tipo esplicito (`var x: String =`) invece di `:=` nelle espressioni ternarie |
 
+### Completato in sessione (2026-06-28 — Tile art & Symbol overlay)
+
+| Componente | Note |
+|---|---|
+| Texture tile aggiornata | `stonetile256x256.png` sostituita con versione bordo naturale marrone, nessun bordo nero |
+| Board background pergamena | `board_parchment.png` sostituisce stonetile come sfondo board; `BG_PADDING` 60px per cornice visibile |
+| Symbol overlay per capitolo | `TextureRect "SymbolOverlay"` figlio di ogni tile; `AtlasTexture` taglia il simbolo in `grid_size×grid_size` frammenti; ogni tile mostra il frammento del proprio valore; `BLEND_MODE_ADD`, opacità 0.12 |
+| Symbol reveal al completamento | `_play_symbol_reveal()`: emerge 0.12→0.6 (1s), pulsa 0.6→0.35→0.6 (1.5s), pausa 0.5s → poi stelline. Flusso: simbolo emerge → stelline → LevelComplete → DiaryScreen |
+| Fix `TestAllLevelsPlaythrough` | `Panel` → `TextureRect` dopo refactor tile; 111/111 confermati |
+
 ### Open point
 
 _Nessuno._
@@ -505,7 +515,7 @@ _Nessuno._
 |---|---|---|
 | 1 | ~~**SFX**~~ | ✅ Completato — 5 trigger, volume separato, slider in Settings |
 | 2 | ~~**Daily Puzzle**~~ | ✅ Completato — generazione deterministica, schermata dedicata, free per tutti |
-| 3 | **Tile art** | Da rifinire in futuro — aspetto attuale accettabile |
+| 3 | ~~**Tile art**~~ | ✅ Completato — texture aggiornata, board pergamena, symbol overlay per capitolo con reveal animato |
 | 4 | **IAP** | Sblocco completo 0.99€, gate dopo Capitolo II; Google Play Billing integration |
 
 #### Lancio
