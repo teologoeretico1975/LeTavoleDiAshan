@@ -80,6 +80,7 @@ var _data: Dictionary = {}
 
 func _ready() -> void:
 	_load_from_disk()
+	_migrate_diaries()
 	# La lingua viene applicata da LocalizationManager (autoload successivo).
 
 
@@ -377,6 +378,32 @@ func mark_diary_seen(p_chapter: int, p_level: int) -> void:
 	var seen: Array = _data[DIARIES_KEY]
 	if key not in seen:
 		seen.append(key)
+	_save_to_disk()
+
+
+# ---------------------------------------------------------------------------
+# Migrazione diari (eseguita una volta sola al primo avvio post-aggiornamento)
+# ---------------------------------------------------------------------------
+
+# Se __diaries_seen__ non esiste ancora nel salvataggio, marca tutti i livelli
+# già completati come "diario già visto". Questo evita che i giocatori con
+# salvataggi precedenti all'introduzione del sistema diari ricevano popup
+# retroattivi su livelli già completati decine di volte.
+# L'assenza della chiave DIARIES_KEY è il marker di "non ancora migrato".
+func _migrate_diaries() -> void:
+	if _data.has(DIARIES_KEY):
+		return
+	_data[DIARIES_KEY] = []
+	for c_key: String in _data:
+		if c_key.begins_with("_"):
+			continue  # salta __coins__, __hints_used__, ecc.
+		var chapter_data = _data[c_key]
+		if not chapter_data is Dictionary:
+			continue
+		for l_key: String in chapter_data:
+			var entry = chapter_data[l_key]
+			if entry is Dictionary and entry.get("completed", false):
+				_data[DIARIES_KEY].append("%s_%s" % [c_key, l_key])
 	_save_to_disk()
 
 
