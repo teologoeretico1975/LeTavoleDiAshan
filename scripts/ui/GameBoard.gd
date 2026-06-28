@@ -499,7 +499,7 @@ func _make_tile(board_index: int, tile_value: int = 0) -> Control:
 			var mat := CanvasItemMaterial.new()
 			mat.blend_mode           = CanvasItemMaterial.BLEND_MODE_ADD
 			overlay.material         = mat
-			overlay.modulate         = Color(1.0, 1.0, 1.0, 0.25)
+			overlay.modulate         = Color(1.0, 1.0, 1.0, 0.12)
 			tile.add_child(overlay)
 
 	tile.add_child(label)
