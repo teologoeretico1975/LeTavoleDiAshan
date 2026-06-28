@@ -644,8 +644,8 @@ func _on_puzzle_solved() -> void:
 	else:
 		push_warning("GameBoard: SaveManager non disponibile, risultato non salvato.")
 
-	# Flash visivo breve, poi overlay. Il flash è opzionale ma dà feedback
-	# immediato prima che l'overlay appaia (il delay della reveal stelle lo giustifica).
+	# Simbolo emerge per 3s, poi flash + overlay stelline.
+	await _play_symbol_reveal()
 	_play_solve_flash()
 	_show_level_complete(stars, coins_earned)
 
@@ -666,6 +666,39 @@ func _compute_stars(p_moves: int) -> int:
 # ---------------------------------------------------------------------------
 # Animazione di risoluzione
 # ---------------------------------------------------------------------------
+
+func _play_symbol_reveal() -> void:
+	var overlays: Array = []
+	for tile in _tile_nodes:
+		var ov: Node = tile.get_node_or_null("SymbolOverlay")
+		if ov != null:
+			overlays.append(ov)
+
+	if overlays.is_empty():
+		return
+
+	# Fase 1 — emerge: 0.12 → 0.6 in 1.0s
+	var t1 := create_tween()
+	t1.set_parallel(true)
+	for ov in overlays:
+		t1.tween_property(ov, "modulate:a", 0.6, 1.0)\
+			.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	await t1.finished
+
+	# Fase 2 — pulsazione: 0.6 → 0.35 → 0.6 in 1.5s
+	var t2 := create_tween()
+	t2.set_parallel(true)
+	for ov in overlays:
+		t2.tween_property(ov, "modulate:a", 0.35, 0.75)\
+			.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		t2.tween_property(ov, "modulate:a", 0.6, 0.75)\
+			.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)\
+			.set_delay(0.75)
+	await t2.finished
+
+	# Fase 3 — pausa finale prima delle stelline
+	await get_tree().create_timer(0.5).timeout
+
 
 func _play_solve_flash() -> void:
 	# Overlay luminoso dorato che compare e svanisce sopra tutta la board.
