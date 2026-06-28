@@ -163,20 +163,17 @@ func _build_ui() -> void:
 # ---------------------------------------------------------------------------
 
 func _start_sequence() -> void:
-	# Fade in.
+	# Stabilizza il layout mentre la schermata è ancora invisibile (modulate.a = 0),
+	# così il glitch "rettangolo piccolo" non è mai visibile all'utente.
+	await get_tree().process_frame
+	await get_tree().process_frame
+	_text_label.custom_minimum_size.x = _scroll_container.size.x
+	await get_tree().process_frame
+
+	# Fade in solo dopo che il layout è già corretto.
 	var tween_in := create_tween()
 	tween_in.tween_property(_root_control, "modulate:a", 1.0, 0.4)
 	await tween_in.finished
-
-	# Aspetta due frame: il layout deve essere stabilizzato prima di leggere
-	# le dimensioni dei nodi e impostare custom_minimum_size sul testo.
-	await get_tree().process_frame
-	await get_tree().process_frame
-
-	# Fix larghezza Label dentro ScrollContainer: senza questo, autowrap non si
-	# attiva perché ScrollContainer non propaga una larghezza al figlio.
-	_text_label.custom_minimum_size.x = _scroll_container.size.x
-	await get_tree().process_frame
 
 	# Pausa iniziale prima dell'autoscroll.
 	await get_tree().create_timer(2.0).timeout
