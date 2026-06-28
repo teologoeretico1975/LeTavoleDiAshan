@@ -84,6 +84,10 @@ var _is_animating: bool = false
 # mai resettato: il giocatore non deve poter continuare a muovere le tile.
 var _is_solved: bool = false
 
+# Modalità Daily Puzzle: niente stelle/monete/DiaryScreen, ritorno a DailyPuzzleScreen.
+# Impostato da GameManager.is_daily_mode prima del cambio scena.
+var _is_daily_mode: bool = false
+
 # Riferimento all'overlay di fine livello — mostrato da _on_puzzle_solved().
 var _level_complete_panel: Control
 # Riferimento al pulsante "Avanti" — disabilitato se è l'ultimo livello.
@@ -112,8 +116,18 @@ func _ready() -> void:
 	if gm != null:
 		chapter  = gm.selected_chapter
 		level_id = gm.selected_level
+		_is_daily_mode = gm.is_daily_mode
 
-	_state = _load_level(chapter, level_id)
+	if _is_daily_mode:
+		var dpm: Node = get_node_or_null("/root/DailyPuzzleManager")
+		if dpm != null:
+			var daily_state: BoardState = dpm.get_today_puzzle()
+			_grid_size = 4
+			_state = daily_state
+		else:
+			_state = _load_level(chapter, level_id)
+	else:
+		_state = _load_level(chapter, level_id)
 
 	_chapter_overlay = get_node_or_null("ChapterOverlay") as ColorRect
 	_set_chapter_overlay(chapter)
@@ -312,7 +326,8 @@ func _setup_hud() -> void:
 
 	_label_title = Label.new()
 	_label_title.name = "LabelTitle"
-	_label_title.text = tr("LEVEL_%d_%d_TITLE" % [chapter, level_id])
+	_label_title.text = tr("DAILY_PUZZLE_TITLE") if _is_daily_mode \
+		else tr("LEVEL_%d_%d_TITLE" % [chapter, level_id])
 	_label_title.add_theme_font_size_override("font_size", 20)
 	_label_title.add_theme_color_override("font_color", COL_TILE)
 	_label_title.mouse_filter         = Control.MOUSE_FILTER_IGNORE
@@ -576,6 +591,14 @@ func _on_puzzle_solved() -> void:
 	if am != null:
 		am.play_sfx("level_complete")
 
+	if _is_daily_mode:
+		var dpm: Node = get_node_or_null("/root/DailyPuzzleManager")
+		if dpm != null:
+			dpm.mark_completed_today(_move_count)
+		_play_solve_flash()
+		_show_level_complete_daily()
+		return
+
 	var stars := _compute_stars(_move_count)
 	var coins_earned: int = 0
 
@@ -803,6 +826,29 @@ func _show_level_complete(p_stars: int, p_coins_earned: int) -> void:
 	_reveal_stars(p_stars)
 
 
+# Overlay semplificato per la modalità Daily: mosse usate + pulsante "< Menu".
+# Niente stelle, niente monete, niente "Avanti". Torna a DailyPuzzleScreen.
+func _show_level_complete_daily() -> void:
+	var par: int = int(_level_data.get("par_moves", 0))
+
+	var lbl_moves := _level_complete_panel.get_node("Card/VBox/LabelMoves") as Label
+	if par > 0:
+		lbl_moves.text = tr("OVERLAY_MOVES_PAR") % [_move_count, par]
+	else:
+		lbl_moves.text = "%s: %d" % [tr("DAILY_PUZZLE_MOVES"), _move_count]
+
+	var lbl_stars := _level_complete_panel.get_node("Card/VBox/LabelStars") as Label
+	lbl_stars.text = "✦"
+
+	var lbl_coins := _level_complete_panel.get_node("Card/VBox/LabelCoins") as Label
+	lbl_coins.visible = false
+
+	if _btn_next != null:
+		_btn_next.visible = false
+
+	_level_complete_panel.visible = true
+
+
 # Rivela le stelle sequenzialmente: prima mostra le vuote, poi le aggiunge una ad una.
 # Usa una serie di tween_callback() concatenati — ogni step aspetta il precedente.
 func _reveal_stars(p_stars: int) -> void:
@@ -831,6 +877,9 @@ func _reveal_stars(p_stars: int) -> void:
 # ---------------------------------------------------------------------------
 
 func _on_overlay_map_pressed() -> void:
+	if _is_daily_mode:
+		get_tree().change_scene_to_file("res://scenes/ui/DailyPuzzleScreen.tscn")
+		return
 	var gm: Node = get_node_or_null("/root/GameManager")
 	if gm != null:
 		gm.selected_chapter = chapter
@@ -1045,6 +1094,9 @@ func _on_settings_pressed() -> void:
 
 
 func _on_back_pressed() -> void:
+	if _is_daily_mode:
+		get_tree().change_scene_to_file("res://scenes/ui/DailyPuzzleScreen.tscn")
+		return
 	var gm: Node = get_node_or_null("/root/GameManager")
 	if gm != null:
 		gm.goto_level_select(chapter)

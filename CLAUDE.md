@@ -378,12 +378,14 @@ encrypted — gli utenti con save legacy li trovano convertiti al prossimo avvio
 | `PuzzleSolver` A* (core) | ✅ completo, limite nodi confermato ~30 mosse 4×4 |
 | `HintSolver` greedy (core) | ✅ completo, istantaneo su qualsiasi stato |
 | `LevelLoader` (Autoload) | ✅ completo — carica `chapter_0X.json` on-demand, cache in memoria; `get_level()` / `get_chapter_info()` / `get_chapter_title()` |
-| `SaveManager` (Autoload) | ✅ completo — persistenza `user://save.bin` **cifrato AES-256** (`FileAccess.open_encrypted_with_pass`); stelle, sblocco livelli/capitoli, monete, hint, lingua, volume musica+SFX, diari visti; migrazione automatica da `save.json` legacy |
-| `GameManager` (Autoload) | ✅ completo — blackboard per navigazione tra scene (`selected_chapter`, `selected_level`); `goto_game_board()` / `goto_level_select()` / `goto_chapter_select()` / `goto_main_menu()` / `goto_settings()` / `return_from_settings()` |
-| `MainMenu.tscn` + script | ✅ completo — titolo, tagline, pulsanti "Inizia" ed "Esci" (`get_tree().quit()`); **Main Scene del progetto** |
+| `SaveManager` (Autoload) | ✅ completo — persistenza `user://save.bin` **cifrato AES-256** (`FileAccess.open_encrypted_with_pass`); stelle, sblocco livelli/capitoli, monete, hint, lingua, volume musica+SFX, diari visti, record daily puzzle; migrazione automatica da `save.json` legacy (con eliminazione del file legacy dopo migrazione) |
+| `GameManager` (Autoload) | ✅ completo — blackboard per navigazione tra scene (`selected_chapter`, `selected_level`, `is_daily_mode`); `goto_game_board()` / `goto_level_select()` / `goto_chapter_select()` / `goto_main_menu()` / `goto_settings()` / `return_from_settings()` / `goto_daily_puzzle()` / `return_from_daily()` |
+| `DailyPuzzleManager` (Autoload) | ✅ completo — generazione deterministica da data (seed = anno×10000+mese×100+giorno), MD-increasing TARGET_MD=27, `get_today_puzzle()` / `is_completed_today()` / `mark_completed_today()` / `get_today_date_string()` localizzato IT/EN/ES |
+| `MainMenu.tscn` + script | ✅ completo — titolo, tagline, pulsanti "Inizia", "Il Puzzle di Oggi", "Impostazioni", "Esci"; **Main Scene del progetto** |
 | `ChapterSelect.tscn` + script | ✅ completo — lista verticale 6 capitoli con titolo narrativo, progresso (livelli/stelle), sblocco progressivo; pulsante "< Menu" |
 | `LevelSelect.tscn` + script | ✅ completo — griglia 4 colonne con stato per livello (bloccato/stelle); legge `LevelLoader` + `SaveManager`; naviga a `GameBoard` al click |
-| `GameBoard.tscn` + script | ✅ completo — griglia cliccabile, tween, HUD completo (titolo, mosse, monete `✦`, pulsante Hint con label dinamica); overlay Level Complete (stelle sequenziali, mosse/par, monete guadagnate, "Avanti"/"Mappa"); flash tile hint (`_flash_tile_hint`); pulsante "< Mappa" + ESC |
+| `GameBoard.tscn` + script | ✅ completo — griglia cliccabile, tween, HUD completo (titolo, mosse, monete `✦`, pulsante Hint con label dinamica); overlay Level Complete (stelle sequenziali, mosse/par, monete guadagnate, "Avanti"/"Mappa"); flash tile hint (`_flash_tile_hint`); pulsante "< Mappa" + ESC; **modalità Daily** (`_is_daily_mode`): no stelle/monete/DiaryScreen, torna a DailyPuzzleScreen |
+| `DailyPuzzleScreen.tscn` + script | ✅ completo — mostra data localizzata, sottotitolo; se non completato: pulsante "Inizia"; se già completato: mosse usate + "Torna domani"; fade-in da nero |
 | `DiaryScreen.tscn` + script | ✅ completo — CanvasLayer overlay post-livello; frammenti diario Frate Sybelius localizzati IT/EN/ES; autoscroll 40px/s; pulsante "Continua"; seen-once logic con migrazione save; fade-in/out |
 | `TestAllLevelsPlaythrough` | ✅ 111/111 livelli passati — playthrough 50 mosse per livello, verifica invarianti sync UI/logica |
 | `TestSaveManager` | ✅ 9/9 test passati — salvataggio, miglioramento, persistenza su disco, sblocco sequenziale |
@@ -407,6 +409,7 @@ Ceiling MD-increasing su 4×4: **~51 stabile, 52 borderline** (timeout a 55+).
 
 ```
 MainMenu (Main Scene) → ChapterSelect → LevelSelect → GameBoard → LevelSelect → ChapterSelect → MainMenu
+MainMenu → DailyPuzzleScreen → GameBoard (daily mode) → DailyPuzzleScreen
 ```
 
 ### Stato verticale
@@ -477,11 +480,22 @@ Modello **freemium**:
 | Fix Settings back button | Pulsante "Indietro" ancorato in basso al centro (fuori dal VBox) — sempre visibile indipendentemente dall'altezza dello schermo |
 | Transizioni schermate | Fade-in da nero (0.35s) all'ingresso di tutte le schermate: MainMenu, ChapterSelect, LevelSelect, GameBoard; DiaryScreen: fade-out verso nero anziché trasparente (evita flash GameBoard) |
 
-### Open point
+### Completato in sessione (2026-06-28 — Daily Puzzle + Security)
 
 | Componente | Note |
 |---|---|
-| Test tampering save | Verificare che `save.bin` cifrato sia effettivamente opaco (Notepad, hex editor) e che la modifica del file provochi reset pulito e non crash |
+| `DailyPuzzleManager` (Autoload) | Generazione deterministica da data, seed = anno×10000+mese×100+giorno; MD-increasing TARGET_MD=27; data localizzata IT/EN/ES |
+| `DailyPuzzleScreen.tscn` + script | Schermata dedicata: data odierna, stato completamento, pulsante "Inizia" o riepilogo mosse + "Torna domani" |
+| Pulsante MainMenu | "Il Puzzle di Oggi" visibile a tutti (non gated IAP), tra "Inizia" e "Impostazioni" |
+| GameBoard modalità Daily | Flag `_is_daily_mode`: no stelle/monete/DiaryScreen; al completamento chiama `DailyPuzzleManager.mark_completed_today()`; torna a DailyPuzzleScreen |
+| SaveManager daily record | Chiave `__daily_record__`: `{ date, moves, completed }` — solo il giorno corrente, nessuno storico |
+| Fix tampering save | `save.json` legacy eliminato dopo migrazione (`DirAccess.remove_absolute`); tampering di `save.bin` → reset pulito verificato |
+| Fix MainMenu layout | Pulsanti 200×56 → 280×62; VBox separation 32 → 16; spacer ridotti — "Esci" sempre visibile, testo non troncato |
+| Fix GDScript type inference | Con autoload recuperati come `Node`, usare tipo esplicito (`var x: String =`) invece di `:=` nelle espressioni ternarie |
+
+### Open point
+
+_Nessuno._
 
 ### Roadmap
 
@@ -490,7 +504,7 @@ Modello **freemium**:
 | Priorità | Componente | Note |
 |---|---|---|
 | 1 | ~~**SFX**~~ | ✅ Completato — 5 trigger, volume separato, slider in Settings |
-| 2 | **Daily Puzzle** | Puzzle giornaliero gratuito permanente, generazione deterministica da data, schermata dedicata |
+| 2 | ~~**Daily Puzzle**~~ | ✅ Completato — generazione deterministica, schermata dedicata, free per tutti |
 | 3 | **Tile art** | Da rifinire in futuro — aspetto attuale accettabile |
 | 4 | **IAP** | Sblocco completo 0.99€, gate dopo Capitolo II; Google Play Billing integration |
 

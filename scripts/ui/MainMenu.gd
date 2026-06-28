@@ -9,6 +9,7 @@ const COL_GOLD := Color("c9a227")
 var _lbl_title: Label
 var _lbl_tag:   Label
 var _btn_start:    Button
+var _btn_daily:    Button
 var _btn_settings: Button
 var _btn_quit:     Button
 
@@ -26,7 +27,7 @@ func _ready() -> void:
 
 	var vbox := VBoxContainer.new()
 	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	vbox.add_theme_constant_override("separation", 32)
+	vbox.add_theme_constant_override("separation", 16)
 	vbox.anchor_left   = 0.0; vbox.anchor_right  = 1.0
 	vbox.anchor_top    = 0.0; vbox.anchor_bottom = 1.0
 	add_child(vbox)
@@ -45,19 +46,21 @@ func _ready() -> void:
 	_lbl_tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	vbox.add_child(_lbl_tag)
 
-	vbox.add_child(_make_spacer(24))
+	vbox.add_child(_make_spacer(16))
 
 	var hbox_start := _make_btn_row("", _on_start_pressed)
 	vbox.add_child(hbox_start)
 	_btn_start = hbox_start.get_child(0) as Button
 
-	vbox.add_child(_make_spacer(8))
+	var hbox_daily := _make_btn_row("", _on_daily_pressed)
+	vbox.add_child(hbox_daily)
+	_btn_daily = hbox_daily.get_child(0) as Button
 
 	var hbox_settings := _make_btn_row("", _on_settings_pressed)
 	vbox.add_child(hbox_settings)
 	_btn_settings = hbox_settings.get_child(0) as Button
 
-	vbox.add_child(_make_spacer(16))
+	vbox.add_child(_make_spacer(8))
 
 	var hbox_quit := _make_btn_row("", _on_quit_pressed)
 	vbox.add_child(hbox_quit)
@@ -81,6 +84,7 @@ func _refresh_texts() -> void:
 	if _lbl_title    != null: _lbl_title.text    = tr("GAME_TITLE")
 	if _lbl_tag      != null: _lbl_tag.text      = tr("TAGLINE")
 	if _btn_start    != null: _btn_start.text    = tr("BTN_START")
+	if _btn_daily    != null: _btn_daily.text    = tr("DAILY_PUZZLE_TITLE")
 	if _btn_settings != null: _btn_settings.text = tr("BTN_SETTINGS")
 	if _btn_quit     != null: _btn_quit.text     = tr("BTN_QUIT")
 
@@ -97,7 +101,7 @@ func _make_btn_row(p_label: String, p_callback: Callable) -> HBoxContainer:
 	btn.text = p_label
 	btn.add_theme_font_size_override("font_size", 26)
 	btn.add_theme_color_override("font_color", COL_BG)
-	btn.custom_minimum_size = Vector2(200, 56)
+	btn.custom_minimum_size = Vector2(280, 62)
 
 	var s_n := StyleBoxFlat.new()
 	s_n.bg_color = COL_GOLD
@@ -122,6 +126,10 @@ func _on_start_pressed() -> void:
 	var gm: Node = get_node_or_null("/root/GameManager")
 	if gm != null:
 		gm.goto_chapter_select()
+
+
+func _on_daily_pressed() -> void:
+	get_tree().change_scene_to_file("res://scenes/ui/DailyPuzzleScreen.tscn")
 
 
 func _on_settings_pressed() -> void:

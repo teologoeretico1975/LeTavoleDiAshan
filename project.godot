@@ -22,6 +22,7 @@ LevelLoader="*res://scripts/managers/level_loader.gd"
 SaveManager="*uid://bhiejw0hpbya0"
 LocalizationManager="*res://scripts/managers/localization_manager.gd"
 AudioManager="*res://scripts/managers/audio_manager.gd"
+DailyPuzzleManager="*res://scripts/managers/daily_puzzle_manager.gd"
 
 [display]
 

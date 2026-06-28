@@ -1,0 +1,25 @@
+[gd_scene format=3 uid="uid://daily_puzzle_screen"]
+
+[ext_resource type="Script" path="res://scripts/ui/DailyPuzzleScreen.gd" id="1_daily"]
+[ext_resource type="Texture2D" uid="uid://dspet6yajtn7s" path="res://assets/backgrounds/main_menu_bg.jpg" id="2_bg"]
+[ext_resource type="Theme" uid="uid://ashan_theme" path="res://assets/themes/ashan_theme.tres" id="3_theme"]
+
+[node name="DailyPuzzleScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("3_theme")
+script = ExtResource("1_daily")
+
+[node name="TextureRect" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_bg")
+stretch_mode = 6

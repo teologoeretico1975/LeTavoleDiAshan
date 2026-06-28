@@ -31,6 +31,10 @@ extends Node
 var selected_chapter: int = 1
 var selected_level:   int = 1
 
+# Modalità Daily Puzzle: quando true GameBoard si comporta diversamente
+# (niente stelle/monete/DiaryScreen, ritorno a DailyPuzzleScreen).
+var is_daily_mode: bool = false
+
 # Scena da cui si è entrati in Settings — usata da return_from_settings().
 var _settings_return_scene: String = "res://scenes/ui/MainMenu.tscn"
 
@@ -44,6 +48,7 @@ var _settings_return_scene: String = "res://scenes/ui/MainMenu.tscn"
 func goto_game_board(p_chapter: int, p_level: int) -> void:
 	selected_chapter = p_chapter
 	selected_level   = p_level
+	is_daily_mode    = false
 	get_tree().change_scene_to_file("res://scenes/game/GameBoard.tscn")
 
 
@@ -63,7 +68,21 @@ func goto_chapter_select() -> void:
 # Torna al menu principale.
 # Chiamato da ChapterSelect (pulsante "< Menu").
 func goto_main_menu() -> void:
+	is_daily_mode = false
 	get_tree().change_scene_to_file("res://scenes/ui/MainMenu.tscn")
+
+
+# Avvia GameBoard in modalità Daily Puzzle.
+# DailyPuzzleManager fornisce il BoardState; GameBoard legge is_daily_mode.
+func goto_daily_puzzle() -> void:
+	is_daily_mode = true
+	get_tree().change_scene_to_file("res://scenes/game/GameBoard.tscn")
+
+
+# Torna a DailyPuzzleScreen dopo il completamento del puzzle giornaliero.
+func return_from_daily() -> void:
+	is_daily_mode = false
+	get_tree().change_scene_to_file("res://scenes/ui/DailyPuzzleScreen.tscn")
 
 
 # Entra nella schermata Settings ricordando da dove si viene.

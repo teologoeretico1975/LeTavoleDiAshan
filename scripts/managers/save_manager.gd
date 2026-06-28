@@ -60,6 +60,7 @@ const LANGUAGE_KEY   := "__language__"
 const VOLUME_KEY     := "__music_volume__"
 const SFX_VOLUME_KEY := "__sfx_volume__"
 const DIARIES_KEY    := "__diaries_seen__"
+const DAILY_KEY      := "__daily_record__"
 
 # Monete assegnate per stella al primo raggiungimento di quel record.
 const COINS_PER_STAR := 10
@@ -415,6 +416,23 @@ func _migrate_diaries() -> void:
 
 
 # ---------------------------------------------------------------------------
+# API Daily Puzzle
+# ---------------------------------------------------------------------------
+
+# Ritorna il record del Daily Puzzle: { "date": "2026-06-28", "moves": 47, "completed": true }
+# o un Dictionary vuoto se non è mai stato completato.
+func get_daily_record() -> Dictionary:
+	return _data.get(DAILY_KEY, {})
+
+
+# Salva il completamento del Daily Puzzle per la data specificata.
+# Sovrascrive sempre l'eventuale record precedente — teniamo solo il giorno corrente.
+func save_daily_record(p_date: String, p_moves: int) -> void:
+	_data[DAILY_KEY] = { "date": p_date, "moves": p_moves, "completed": true }
+	_save_to_disk()
+
+
+# ---------------------------------------------------------------------------
 # Calcolo stelle
 # ---------------------------------------------------------------------------
 
@@ -466,9 +484,10 @@ func _load_from_disk() -> void:
 	if text.is_empty():
 		text = _read_plain_legacy()
 		if not text.is_empty():
-			# Save trovato in chiaro: re-salva subito cifrato, poi continua.
+			# Save trovato in chiaro: re-salva cifrato ed elimina il legacy.
 			push_warning("SaveManager: save legacy in chiaro rilevato — migrazione a formato cifrato.")
 			_save_to_disk_text(text)
+			DirAccess.remove_absolute(ProjectSettings.globalize_path("user://save.json"))
 
 	if text.is_empty():
 		return

@@ -250,3 +250,8 @@ LEVEL_6_11_DIARY,"L'ultima tavola è al suo posto. L'ordine è completo. Ashan �
 DIARY_HEADER,"Dal Diario di Frate Sybelius","From the Diary of Brother Sybelius","Del Diario del Hermano Sybelius"
 DIARY_TAP_TO_SKIP,"Tocca per continuare","Tap to continue","Toca para continuar"
 DIARY_CONTINUE,Continua,Continue,Continuar
+DAILY_PUZZLE_TITLE,"Il Puzzle di Oggi","Today's Puzzle","El Puzzle de Hoy"
+DAILY_PUZZLE_SUBTITLE,"Un nuovo enigma ogni giorno","A new enigma every day","Un nuevo enigma cada día"
+DAILY_PUZZLE_COMPLETED,"Già completato oggi","Already completed today","Ya completado hoy"
+DAILY_PUZZLE_RETURN,"Torna domani","Return tomorrow","Vuelve mañana"
+DAILY_PUZZLE_MOVES,Mosse,Moves,Movimientos
