@@ -201,8 +201,16 @@ func _navigate_away() -> void:
 	_navigating = true
 	_btn_continue.disabled = true
 
+	# Fade verso il nero anziché verso il trasparente: evita di rivelare
+	# la GameBoard sottostante (con overlay stelle) durante la transizione.
+	var black := ColorRect.new()
+	black.color        = Color(0.0, 0.0, 0.0, 0.0)
+	black.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	black.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_root_control.add_child(black)
+
 	var tween := create_tween()
-	tween.tween_property(_root_control, "modulate:a", 0.0, 0.4)
+	tween.tween_property(black, "color:a", 1.0, 0.4)
 	await tween.finished
 
 	queue_free()
