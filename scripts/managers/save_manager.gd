@@ -38,7 +38,14 @@ extends Node
 # Costanti
 # ---------------------------------------------------------------------------
 
-const SAVE_PATH := "user://save.json"
+const SAVE_PATH := "user://save.bin"
+
+# Chiave AES-256 derivata via SHA-256 dalla stringa qui sotto.
+# Hardcoded per necessità (è un gioco offline single-player), ma sufficiente
+# a rendere il file opaco a qualsiasi editor o tool di analisi.
+# Non modificare questa costante dopo il rilascio: i save esistenti diventerebbero
+# illeggibili e i giocatori perderebbero il progresso.
+const _SAVE_KEY := "Ash4n_T4v0l3_K3y_2026_r7x9z2q_v1"
 
 # Soglie stelle: moves_used <= par_moves → 3★, <= good_moves → 2★, altrimenti 1★.
 # (0★ = non completato, non salvato qui — viene gestito da completed:false)
@@ -449,16 +456,22 @@ func _get_level_data_from_loader(p_chapter: int, p_level_id: int) -> Dictionary:
 
 func _load_from_disk() -> void:
 	if not FileAccess.file_exists(SAVE_PATH):
-		# Prima esecuzione — nessun dato salvato, partiamo da dizionario vuoto.
 		return
 
-	var file := FileAccess.open(SAVE_PATH, FileAccess.READ)
-	if file == null:
-		push_warning("SaveManager: impossibile aprire %s." % SAVE_PATH)
-		return
+	# Prova prima la lettura cifrata (formato corrente).
+	var text := _read_encrypted()
 
-	var text := file.get_as_text()
-	file.close()
+	# Fallback plain-text: migrazione da save.json legacy (pre-cifratura).
+	# Il percorso plain è controllato solo se quello cifrato fallisce.
+	if text.is_empty():
+		text = _read_plain_legacy()
+		if not text.is_empty():
+			# Save trovato in chiaro: re-salva subito cifrato, poi continua.
+			push_warning("SaveManager: save legacy in chiaro rilevato — migrazione a formato cifrato.")
+			_save_to_disk_text(text)
+
+	if text.is_empty():
+		return
 
 	var parsed = JSON.parse_string(text)
 	if parsed == null or not parsed is Dictionary:
@@ -468,16 +481,41 @@ func _load_from_disk() -> void:
 	_data = parsed
 
 
+# Legge il file cifrato con AES-256. Ritorna stringa vuota in caso di errore
+# (file assente, chiave errata, dati corrotti).
+func _read_encrypted() -> String:
+	var file := FileAccess.open_encrypted_with_pass(SAVE_PATH, FileAccess.READ, _SAVE_KEY)
+	if file == null:
+		return ""
+	var text := file.get_as_text()
+	file.close()
+	return text
+
+
+# Legge il vecchio save.json in chiaro — usato una sola volta per la migrazione.
+func _read_plain_legacy() -> String:
+	const LEGACY_PATH := "user://save.json"
+	if not FileAccess.file_exists(LEGACY_PATH):
+		return ""
+	var file := FileAccess.open(LEGACY_PATH, FileAccess.READ)
+	if file == null:
+		return ""
+	var text := file.get_as_text()
+	file.close()
+	return text
+
+
 func _save_to_disk() -> void:
-	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	_save_to_disk_text(JSON.stringify(_data))
+
+
+# Scrive p_text cifrato su SAVE_PATH.
+func _save_to_disk_text(p_text: String) -> void:
+	var file := FileAccess.open_encrypted_with_pass(SAVE_PATH, FileAccess.WRITE, _SAVE_KEY)
 	if file == null:
 		push_error("SaveManager: impossibile scrivere su %s." % SAVE_PATH)
 		return
-
-	# JSON.stringify con indent="\t" produce JSON leggibile — utile per debug.
-	# In produzione si potrebbe usare indent="" per risparmiare byte, ma
-	# il file di save sarà sempre piccolo (111 livelli × ~50 byte = ~5 KB).
-	file.store_string(JSON.stringify(_data, "\t"))
+	file.store_string(p_text)
 	file.close()
 
 
