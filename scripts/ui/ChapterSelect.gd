@@ -51,6 +51,7 @@ func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	_setup_header()
 	_build_chapter_list()
+	_fade_in_from_black()
 
 
 func _setup_header() -> void:
@@ -229,3 +230,18 @@ func _on_back_to_menu() -> void:
 	var gm: Node = get_node_or_null("/root/GameManager")
 	if gm != null:
 		gm.goto_main_menu()
+
+
+# ---------------------------------------------------------------------------
+# Transizione ingresso
+# ---------------------------------------------------------------------------
+
+func _fade_in_from_black() -> void:
+	var black := ColorRect.new()
+	black.color        = Color(0.0, 0.0, 0.0, 1.0)
+	black.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	black.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(black)
+	var tween := create_tween()
+	tween.tween_property(black, "color:a", 0.0, 0.35)
+	tween.tween_callback(black.queue_free)

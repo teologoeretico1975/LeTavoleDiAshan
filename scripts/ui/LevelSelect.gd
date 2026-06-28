@@ -76,6 +76,8 @@ func _ready() -> void:
 	if am != null:
 		am.fade_to_chapter(chapter)
 
+	_fade_in_from_black()
+
 
 # ---------------------------------------------------------------------------
 # Header
@@ -280,3 +282,18 @@ func _get_saver() -> Node:
 	if not is_inside_tree():
 		return null
 	return get_node_or_null("/root/SaveManager")
+
+
+# ---------------------------------------------------------------------------
+# Transizione ingresso
+# ---------------------------------------------------------------------------
+
+func _fade_in_from_black() -> void:
+	var black := ColorRect.new()
+	black.color        = Color(0.0, 0.0, 0.0, 1.0)
+	black.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	black.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(black)
+	var tween := create_tween()
+	tween.tween_property(black, "color:a", 0.0, 0.35)
+	tween.tween_callback(black.queue_free)
