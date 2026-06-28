@@ -67,6 +67,12 @@ func _ready() -> void:
 	if am != null:
 		am.stop_music()
 
+	# Pulsante debug — visibile solo nelle build debug (editor + export debug).
+	# OS.is_debug_build() è l'equivalente Godot di #if DEBUG in C#:
+	# restituisce false negli export release, quindi sparisce in produzione.
+	if OS.is_debug_build():
+		_build_debug_reset_button()
+
 	_refresh_texts()
 
 
@@ -125,3 +131,45 @@ func _on_settings_pressed() -> void:
 
 func _on_quit_pressed() -> void:
 	get_tree().quit()
+
+
+# ---------------------------------------------------------------------------
+# Debug only — non raggiungibile nelle build release
+# ---------------------------------------------------------------------------
+
+func _build_debug_reset_button() -> void:
+	var btn := Button.new()
+	btn.text = "[ DEV ] Reset save"
+	btn.add_theme_font_size_override("font_size", 14)
+	btn.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4))
+
+	# Sfondo trasparente con bordo rosso tenue — chiaramente "non production".
+	var s_n := StyleBoxFlat.new()
+	s_n.bg_color    = Color(0.3, 0.0, 0.0, 0.5)
+	s_n.border_color = Color(0.8, 0.2, 0.2, 0.8)
+	s_n.border_width_left = 1; s_n.border_width_right  = 1
+	s_n.border_width_top  = 1; s_n.border_width_bottom = 1
+	s_n.corner_radius_top_left     = 6; s_n.corner_radius_top_right    = 6
+	s_n.corner_radius_bottom_left  = 6; s_n.corner_radius_bottom_right = 6
+	var s_h := s_n.duplicate() as StyleBoxFlat
+	s_h.bg_color = Color(0.5, 0.0, 0.0, 0.7)
+	btn.add_theme_stylebox_override("normal",  s_n)
+	btn.add_theme_stylebox_override("hover",   s_h)
+	btn.add_theme_stylebox_override("pressed", s_h)
+
+	# Ancorato in basso a destra — fuori dai percorsi UI normali.
+	btn.anchor_left   = 1.0; btn.anchor_right  = 1.0
+	btn.anchor_top    = 1.0; btn.anchor_bottom = 1.0
+	btn.offset_left   = -190.0; btn.offset_right  = -8.0
+	btn.offset_top    = -40.0;  btn.offset_bottom = -8.0
+
+	btn.pressed.connect(_on_debug_reset_pressed)
+	add_child(btn)
+
+
+func _on_debug_reset_pressed() -> void:
+	var saver: Node = get_node_or_null("/root/SaveManager")
+	if saver != null:
+		saver.reset_all()
+	# Ricarica la scena corrente per riflettere il reset.
+	get_tree().reload_current_scene()
