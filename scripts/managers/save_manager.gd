@@ -52,6 +52,7 @@ const HINTS_USED_KEY := "__hints_used__"
 const LANGUAGE_KEY   := "__language__"
 const VOLUME_KEY     := "__music_volume__"
 const SFX_VOLUME_KEY := "__sfx_volume__"
+const DIARIES_KEY    := "__diaries_seen__"
 
 # Monete assegnate per stella al primo raggiungimento di quel record.
 const COINS_PER_STAR := 10
@@ -353,6 +354,29 @@ func set_sfx_volume(p_linear: float) -> void:
 # Azzera tutto il progresso salvato (utile per debug/test).
 func reset_all() -> void:
 	_data = {}
+	_save_to_disk()
+
+
+# ---------------------------------------------------------------------------
+# API diari
+# ---------------------------------------------------------------------------
+
+# Ritorna true se il diario del livello è già stato mostrato al giocatore.
+# La chiave usata internamente è "chapter_level", es. "1_1".
+func is_diary_seen(p_chapter: int, p_level: int) -> bool:
+	var key := "%d_%d" % [p_chapter, p_level]
+	var seen: Array = _data.get(DIARIES_KEY, [])
+	return key in seen
+
+
+# Segna il diario come visto. Chiama _save_to_disk() per persistenza immediata.
+func mark_diary_seen(p_chapter: int, p_level: int) -> void:
+	var key := "%d_%d" % [p_chapter, p_level]
+	if not _data.has(DIARIES_KEY):
+		_data[DIARIES_KEY] = []
+	var seen: Array = _data[DIARIES_KEY]
+	if key not in seen:
+		seen.append(key)
 	_save_to_disk()
 
 

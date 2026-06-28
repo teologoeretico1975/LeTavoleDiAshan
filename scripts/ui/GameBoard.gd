@@ -832,7 +832,8 @@ func _reveal_stars(p_stars: int) -> void:
 func _on_overlay_map_pressed() -> void:
 	var gm: Node = get_node_or_null("/root/GameManager")
 	if gm != null:
-		gm.goto_level_select(chapter)
+		gm.selected_chapter = chapter
+	_try_show_diary("res://scenes/ui/LevelSelect.tscn")
 
 
 func _on_overlay_next_pressed() -> void:
@@ -848,15 +849,35 @@ func _on_overlay_next_pressed() -> void:
 		level_count = int(info.get("level_count", 0))
 
 	if level_id < level_count:
-		gm.goto_game_board(chapter, level_id + 1)
+		gm.selected_chapter = chapter
+		gm.selected_level   = level_id + 1
+		_try_show_diary("res://scenes/game/GameBoard.tscn")
 	else:
-		# Ultimo livello del capitolo: placeholder fino a schermata dedicata.
+		# Ultimo livello del capitolo: mostra messaggio, poi vai a LevelSelect.
 		var lbl_title := _level_complete_panel.get_node("Card/VBox/LabelTitle") as Label
 		lbl_title.text = tr("CHAPTER_COMPLETE_TITLE")
 		_btn_next.disabled = true
-		# Torna a LevelSelect dopo un breve delay per far leggere il messaggio.
 		await get_tree().create_timer(1.8).timeout
-		gm.goto_level_select(chapter)
+		gm.selected_chapter = chapter
+		_try_show_diary("res://scenes/ui/LevelSelect.tscn")
+
+
+# Mostra DiaryScreen se il diario del livello non è ancora stato visto;
+# altrimenti naviga direttamente a p_destination.
+# Usato da _on_overlay_map_pressed() e _on_overlay_next_pressed().
+func _try_show_diary(p_destination: String) -> void:
+	var saver: Node = _get_saver()
+	if saver != null and not saver.is_diary_seen(chapter, level_id):
+		saver.mark_diary_seen(chapter, level_id)
+		var diary_scene := load("res://scenes/DiaryScreen.tscn") as PackedScene
+		if diary_scene != null:
+			var diary := diary_scene.instantiate()
+			diary.chapter_index = chapter
+			diary.level_index   = level_id
+			diary.next_scene    = p_destination
+			get_tree().root.add_child(diary)
+			return
+	get_tree().change_scene_to_file(p_destination)
 
 
 # ---------------------------------------------------------------------------
