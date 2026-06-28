@@ -421,14 +421,14 @@ func _build_board() -> void:
 	for i: int in _grid_size * _grid_size:
 		var row: int = i / _grid_size
 		var col: int = i % _grid_size
-		var tile := _make_tile(i)
+		var tile := _make_tile(i, _state.tiles[i])
 		# position è relativa al genitore (BoardContainer), partendo da (0,0) in alto a sinistra.
 		tile.position = Vector2(col * (TILE_SIZE + TILE_GAP), row * (TILE_SIZE + TILE_GAP))
 		_board_container.add_child(tile)
 		_tile_nodes.append(tile)
 
 
-func _make_tile(board_index: int) -> Control:
+func _make_tile(board_index: int, tile_value: int = 0) -> Control:
 	var tile := TextureRect.new()
 	tile.name                = "Tile%d" % board_index
 	tile.size                = Vector2(TILE_SIZE, TILE_SIZE)
@@ -466,6 +466,41 @@ func _make_tile(board_index: int) -> Control:
 	label.add_theme_color_override("font_shadow_color",  Color(0.0,  0.0,  0.0,  0.8))
 	label.add_theme_constant_override("shadow_offset_x", 2)
 	label.add_theme_constant_override("shadow_offset_y", 2)
+
+	# Symbol overlay: each tile shows its own fragment of the chapter symbol.
+	# tile_value determines which fragment (original solved position).
+	# Blank tile (value 0) has no overlay.
+	# Layer order: SymbolOverlay added first → stone texture bg, symbol, then Label on top.
+	if tile_value > 0:
+		var ch_idx: int = clampi(chapter, 1, 6)
+		var sym_tex := ResourceLoader.load(
+			"res://assets/texture/symbol_chapter%d.png" % ch_idx
+		) as Texture2D
+		if sym_tex != null:
+			var sym_size: Vector2 = sym_tex.get_size()
+			var cell: Vector2 = sym_size / float(_grid_size)
+			var orig_idx: int = tile_value - 1       # 0-based
+			var frag_col: int = orig_idx % _grid_size
+			var frag_row: int = orig_idx / _grid_size
+
+			var atlas := AtlasTexture.new()
+			atlas.atlas  = sym_tex
+			atlas.region = Rect2(frag_col * cell.x, frag_row * cell.y, cell.x, cell.y)
+
+			var overlay := TextureRect.new()
+			overlay.name             = "SymbolOverlay"
+			overlay.texture          = atlas
+			overlay.expand_mode      = TextureRect.EXPAND_IGNORE_SIZE
+			overlay.stretch_mode     = TextureRect.STRETCH_SCALE
+			overlay.size             = Vector2(TILE_SIZE, TILE_SIZE)
+			overlay.custom_minimum_size = Vector2(TILE_SIZE, TILE_SIZE)
+			overlay.position         = Vector2(0.0, 0.0)
+			overlay.mouse_filter     = Control.MOUSE_FILTER_IGNORE
+			var mat := CanvasItemMaterial.new()
+			mat.blend_mode           = CanvasItemMaterial.BLEND_MODE_ADD
+			overlay.material         = mat
+			overlay.modulate         = Color(1.0, 1.0, 1.0, 0.25)
+			tile.add_child(overlay)
 
 	tile.add_child(label)
 	tile.gui_input.connect(_on_tile_input.bind(tile))
