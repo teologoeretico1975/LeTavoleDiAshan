@@ -503,6 +503,15 @@ Modello **freemium**:
 | Symbol reveal al completamento | `_play_symbol_reveal()`: emerge 0.12→0.6 (1s), pulsa 0.6→0.35→0.6 (1.5s), pausa 0.5s → poi stelline. Flusso: simbolo emerge → stelline → LevelComplete → DiaryScreen |
 | Fix `TestAllLevelsPlaythrough` | `Panel` → `TextureRect` dopo refactor tile; 111/111 confermati |
 
+### Completato in sessione (2026-06-28 — Audio menu + UX)
+
+| Componente | Note |
+|---|---|
+| `menu_ambience.ogg` | `The_Fractured_Gear.wav` convertito con ffmpeg libvorbis q4; 2m30s, loop |
+| `AudioManager.play_menu_music()` | Crossfade 1.5s; guard anti-double-play (`_current_chapter == 0`); sentinel `0` separato dai capitoli 1–6 |
+| MainMenu + ChapterSelect | Chiamano `play_menu_music()` in `_ready()` — la musica continua senza riavviarsi tra le due schermate |
+| LevelSelect scroll | `GridContainer` wrappato in `ScrollContainer` (vertical `SHOW_NEVER`, horizontal `DISABLED`) — tutti i livelli accessibili anche su schermi bassi |
+
 ### Open point
 
 _Nessuno._
