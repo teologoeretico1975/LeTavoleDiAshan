@@ -304,6 +304,68 @@ _try_move(_tile_nodes.find(panel))
 callback non devono dipendere dall'indice originale — devono ricavarlo
 dinamicamente dalla struttura dati aggiornata.
 
+### Label in ScrollContainer: custom_minimum_size dopo layout stabilizzato
+
+**Problema:** `Label` dentro `ScrollContainer` — Godot 4 non propaga la larghezza
+del container al figlio, quindi `autowrap_mode` non si attiva e il testo si estende
+fuori dallo schermo invisibilmente.
+
+**Pattern corretto:**
+```gdscript
+label.size_flags_horizontal = Control.SIZE_FILL  # non EXPAND_FILL
+# Dopo almeno 3 frame di layout:
+label.custom_minimum_size.x = scroll_container.size.x
+```
+`SIZE_FILL` (non `SIZE_EXPAND_FILL`) evita che il Label espanda il container.
+`custom_minimum_size.x` imposta la larghezza effettiva per il wrapping.
+
+**Regola generale:** impostare `custom_minimum_size` solo dopo che il layout è
+stabilizzato (≥2 frame dopo `_ready()`). Farlo in `_start_sequence()` con
+`await get_tree().process_frame` ripetuto.
+
+### Transizioni tra schermate: fade verso nero, non verso trasparente
+
+**Problema:** fade-out di un CanvasLayer overlay verso `modulate.a = 0` rivela
+la scena sottostante (GameBoard con overlay stelle ancora visibile) producendo
+un flash indesiderato prima del cambio scena.
+
+**Pattern corretto:** aggiungere un `ColorRect` nero sopra l'overlay e fare
+fade-in di quello (da alpha 0 a 1), poi cambiare scena. La nuova scena appare
+"da nero" con il suo fade-in — transizione pulita e coerente.
+
+```gdscript
+var black := ColorRect.new()
+black.color = Color(0, 0, 0, 0)
+black.set_anchors_preset(Control.PRESET_FULL_RECT)
+parent.add_child(black)
+var tween := create_tween()
+tween.tween_property(black, "color:a", 1.0, 0.4)
+await tween.finished
+get_tree().change_scene_to_file(destination)
+```
+
+**Regola generale:** il fade-out verso trasparente rivela sempre ciò che c'è sotto.
+Quando la scena sottostante non deve essere vista, fare fade verso nero.
+
+### OS.is_debug_build() come gate per codice debug-only
+
+**Pattern:** `OS.is_debug_build()` restituisce `true` nell'editor e negli export
+debug, `false` negli export release. Equivalente di `#if DEBUG` in C#.
+Usato per il pulsante "Reset save" in MainMenu — non richiede flag di configurazione,
+è automatico in base al tipo di build.
+
+### Cifratura save con FileAccess.open_encrypted_with_pass()
+
+**API Godot 4:** `FileAccess.open_encrypted_with_pass(path, mode, key_string)` —
+chiave derivata via SHA-256 dalla stringa, cifratura AES-256. Alternativa alla
+cifratura custom, integrata nel motore.
+
+**Nota critica:** non modificare mai la chiave (`_SAVE_KEY`) dopo il rilascio —
+i save esistenti degli utenti diventerebbero illeggibili senza recovery.
+
+**Migrazione:** aprire encrypted, se fallisce aprire plain text, ri-salvare
+encrypted — gli utenti con save legacy li trovano convertiti al prossimo avvio.
+
 ---
 
 ## Stato avanzamento progetto
@@ -316,13 +378,13 @@ dinamicamente dalla struttura dati aggiornata.
 | `PuzzleSolver` A* (core) | ✅ completo, limite nodi confermato ~30 mosse 4×4 |
 | `HintSolver` greedy (core) | ✅ completo, istantaneo su qualsiasi stato |
 | `LevelLoader` (Autoload) | ✅ completo — carica `chapter_0X.json` on-demand, cache in memoria; `get_level()` / `get_chapter_info()` / `get_chapter_title()` |
-| `SaveManager` (Autoload) | ✅ completo — persistenza `user://save.json`, calcolo stelle, sblocco sequenziale livelli e capitoli; `save_level_result()` / `get_level_progress()` / `is_level_unlocked()` / `get_chapter_progress()` / `is_chapter_unlocked()` |
-| `GameManager` (Autoload) | ✅ completo — blackboard per navigazione tra scene (`selected_chapter`, `selected_level`); `goto_game_board()` / `goto_level_select()` / `goto_chapter_select()` / `goto_main_menu()` |
-| `SaveManager` (Autoload) | ✅ completo — persistenza `user://save.json`; stelle, sblocco livelli/capitoli, monete (`get_coins` / `add_coins` / `spend_coins`), hint (`is_hint_free` / `get_free_hints_remaining` / `use_hint`); primi 3 hint gratuiti, poi 20 monete cadauno |
+| `SaveManager` (Autoload) | ✅ completo — persistenza `user://save.bin` **cifrato AES-256** (`FileAccess.open_encrypted_with_pass`); stelle, sblocco livelli/capitoli, monete, hint, lingua, volume musica+SFX, diari visti; migrazione automatica da `save.json` legacy |
+| `GameManager` (Autoload) | ✅ completo — blackboard per navigazione tra scene (`selected_chapter`, `selected_level`); `goto_game_board()` / `goto_level_select()` / `goto_chapter_select()` / `goto_main_menu()` / `goto_settings()` / `return_from_settings()` |
 | `MainMenu.tscn` + script | ✅ completo — titolo, tagline, pulsanti "Inizia" ed "Esci" (`get_tree().quit()`); **Main Scene del progetto** |
 | `ChapterSelect.tscn` + script | ✅ completo — lista verticale 6 capitoli con titolo narrativo, progresso (livelli/stelle), sblocco progressivo; pulsante "< Menu" |
 | `LevelSelect.tscn` + script | ✅ completo — griglia 4 colonne con stato per livello (bloccato/stelle); legge `LevelLoader` + `SaveManager`; naviga a `GameBoard` al click |
 | `GameBoard.tscn` + script | ✅ completo — griglia cliccabile, tween, HUD completo (titolo, mosse, monete `✦`, pulsante Hint con label dinamica); overlay Level Complete (stelle sequenziali, mosse/par, monete guadagnate, "Avanti"/"Mappa"); flash tile hint (`_flash_tile_hint`); pulsante "< Mappa" + ESC |
+| `DiaryScreen.tscn` + script | ✅ completo — CanvasLayer overlay post-livello; frammenti diario Frate Sybelius localizzati IT/EN/ES; autoscroll 40px/s; pulsante "Continua"; seen-once logic con migrazione save; fade-in/out |
 | `TestAllLevelsPlaythrough` | ✅ 111/111 livelli passati — playthrough 50 mosse per livello, verifica invarianti sync UI/logica |
 | `TestSaveManager` | ✅ 9/9 test passati — salvataggio, miglioramento, persistenza su disco, sblocco sequenziale |
 
@@ -404,6 +466,23 @@ Modello **freemium**:
 | SFX — trigger GameBoard | `tile_move`: inizio tween · `tile_invalid`: tap non valido · `hint`: dopo concessione · `level_complete`: ingresso `_on_puzzle_solved()` · `star`: ogni callback `_reveal_stars()` |
 | SFX — volume | Separato dalla musica; chiave `__sfx_volume__` in `SaveManager`; slider 🔔 in Settings con chiave `SETTINGS_SFX_VOLUME` (IT/EN/ES) |
 
+### Completato in sessione (2026-06-28)
+
+| Componente | Note |
+|---|---|
+| `DiaryScreen` | CanvasLayer overlay post-livello; testo localizzato IT/EN/ES (chiave `LEVEL_C_L_DIARY`); autoscroll 40px/s; pulsante "Continua"; seen-once logic (`SaveManager.is_diary_seen` / `mark_diary_seen`); migrazione automatica save esistenti (`_migrate_diaries`) |
+| Cifratura save | `user://save.bin` cifrato AES-256 via `FileAccess.open_encrypted_with_pass`; chiave SHA-256 hardcoded in `_SAVE_KEY`; migrazione automatica da `save.json` plain text al primo avvio |
+| Pulsante debug reset | In `MainMenu`, visibile solo se `OS.is_debug_build()` (equivalente `#if DEBUG`); chiama `SaveManager.reset_all()` e ricarica la scena |
+| Fix CSV localizzazione | Formato RFC 4180 corretto (outer quoting → per-field quoting); rimosso `;` finale dall'header (era causa del file `translations.es;.translation`); ripristinate OVERLAY_MOVES_PAR, COINS_EARNED, PROGRESS_LABEL, HINT_LABEL_FREE, HUD_MOVES, tutti i LEVEL_X_Y_DIARY; aggiunte DIARY_HEADER, DIARY_CONTINUE |
+| Fix Settings back button | Pulsante "Indietro" ancorato in basso al centro (fuori dal VBox) — sempre visibile indipendentemente dall'altezza dello schermo |
+| Transizioni schermate | Fade-in da nero (0.35s) all'ingresso di tutte le schermate: MainMenu, ChapterSelect, LevelSelect, GameBoard; DiaryScreen: fade-out verso nero anziché trasparente (evita flash GameBoard) |
+
+### Open point
+
+| Componente | Note |
+|---|---|
+| Test tampering save | Verificare che `save.bin` cifrato sia effettivamente opaco (Notepad, hex editor) e che la modifica del file provochi reset pulito e non crash |
+
 ### Roadmap
 
 #### Pre-lancio
@@ -425,7 +504,7 @@ Modello **freemium**:
 
 | Priorità | Componente | Note |
 |---|---|---|
-| 6 | **Animazioni** | Movimento tile fluido, transizioni tra schermate |
+| 6 | ~~**Animazioni**~~ | ✅ Transizioni fade-in/out tra schermate completate (2026-06-28) |
 | 7 | **MainMenu espanso** | Continua, Nuova Partita, Credits |
 
 ---
