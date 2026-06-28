@@ -146,35 +146,41 @@ func _build_level_grid() -> void:
 		push_warning("LevelSelect: nessun livello trovato per capitolo %d." % chapter)
 		return
 
-	# GridContainer: container che dispone i figli in N colonne automaticamente.
-	# Ogni add_child() aggiunge un elemento nella prossima cella disponibile —
-	# non serve calcolare righe e colonne manualmente.
+	# ScrollContainer: occupa tutto lo spazio sotto l'header.
+	# Permette lo scroll verticale quando i livelli non stanno tutti a schermo.
+	var scroll := ScrollContainer.new()
+	scroll.name = "ScrollContainer"
+	scroll.anchor_left   = 0.0
+	scroll.anchor_right  = 1.0
+	scroll.anchor_top    = 0.0
+	scroll.anchor_bottom = 1.0
+	scroll.offset_top    = 70.0
+	scroll.offset_bottom = 0.0
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.vertical_scroll_mode   = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+	add_child(scroll)
+
+	# HBoxContainer centrato orizzontalmente — wrap attorno alla griglia.
+	var center := HBoxContainer.new()
+	center.name = "CenterBox"
+	center.alignment = BoxContainer.ALIGNMENT_CENTER
+	center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(center)
+
+	# MarginContainer per padding sopra/sotto la griglia.
+	var grid_wrap := MarginContainer.new()
+	grid_wrap.name = "GridWrap"
+	grid_wrap.add_theme_constant_override("margin_top",    int(BTN_GAP))
+	grid_wrap.add_theme_constant_override("margin_bottom", int(BTN_GAP))
+	center.add_child(grid_wrap)
+
 	_grid = GridContainer.new()
 	_grid.name    = "LevelGrid"
 	_grid.columns = GRID_COLS
-
-	# Larghezza occupata da tutte le colonne + gap tra di esse.
-	var grid_w: float = GRID_COLS * BTN_SIZE + (GRID_COLS - 1) * BTN_GAP
-	var num_rows: int = int(ceil(float(num_levels) / GRID_COLS))
-	var grid_h: float = num_rows * BTN_SIZE + (num_rows - 1) * BTN_GAP
-
-	# Centro orizzontale con margine superiore fisso (sotto l'header).
-	_grid.anchor_left  = 0.5
-	_grid.anchor_right = 0.5
-	_grid.anchor_top   = 0.0
-	_grid.offset_left  = -grid_w / 2.0
-	_grid.offset_right =  grid_w / 2.0
-	_grid.offset_top   = 80.0
-	_grid.offset_bottom = 80.0 + grid_h
-
-	# add_theme_constant_override imposta la spaziatura interna del container
-	# (equivalente di ItemsPanel.Margin o UniformGrid.ColumnSpacing in WPF).
 	_grid.add_theme_constant_override("h_separation", int(BTN_GAP))
 	_grid.add_theme_constant_override("v_separation", int(BTN_GAP))
+	grid_wrap.add_child(_grid)
 
-	add_child(_grid)
-
-	# Popola un pulsante per ogni livello.
 	for lvl_id: int in range(1, num_levels + 1):
 		var is_unlocked: bool = true
 		var stars: int        = 0

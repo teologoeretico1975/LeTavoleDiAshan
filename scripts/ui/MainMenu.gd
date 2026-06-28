@@ -68,7 +68,7 @@ func _ready() -> void:
 
 	var am: Node = get_node_or_null("/root/AudioManager")
 	if am != null:
-		am.stop_music()
+		am.play_menu_music()
 
 	# Pulsante debug — visibile solo nelle build debug (editor + export debug).
 	# OS.is_debug_build() è l'equivalente Godot di #if DEBUG in C#:

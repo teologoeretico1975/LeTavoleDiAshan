@@ -18,6 +18,8 @@ const DEFAULT_VOLUME    := 0.8
 const DEFAULT_SFX_VOL   := 0.8
 
 # Mappa capitolo → nome file OGG (senza directory).
+const MENU_TRACK := "menu_ambience.ogg"
+
 const TRACKS: Dictionary = {
 	1: "chapter_01.ogg",
 	2: "chapter_02.ogg",
@@ -90,6 +92,49 @@ func play_chapter_music(p_chapter: int) -> void:
 	_player_a.stream = stream
 	_player_a.volume_db = _linear_to_db(_volume)
 	_player_a.play()
+
+
+# Avvia la musica del menu (MainMenu + ChapterSelect) con crossfade.
+# Non fa nulla se la traccia menu è già in riproduzione.
+func play_menu_music(duration: float = 1.5) -> void:
+	if _current_chapter == 0 and _player_a.playing:
+		return
+	var path: String = MUSIC_DIR + MENU_TRACK
+	if not ResourceLoader.exists(path):
+		push_warning("AudioManager: menu track non trovata: %s" % path)
+		return
+	var stream := ResourceLoader.load(path) as AudioStream
+	if stream == null:
+		return
+	if stream is AudioStreamOggVorbis:
+		(stream as AudioStreamOggVorbis).loop = true
+
+	if _fading:
+		_player_a.stop()
+		_player_b.stop()
+		_fading = false
+
+	_fading = true
+	_current_chapter = 0
+
+	_player_b.stream = stream
+	_player_b.volume_db = _linear_to_db(0.0)
+	_player_b.play()
+
+	var half: float = duration / 2.0
+	var tween := create_tween()
+	tween.tween_method(_set_volume_a, _volume, 0.0, half)
+	tween.tween_method(_set_volume_b, 0.0, _volume, half)
+	tween.tween_callback(func() -> void:
+		_player_a.stop()
+		_player_a.stream    = _player_b.stream
+		_player_a.volume_db = _linear_to_db(_volume)
+		_player_a.play()
+		_player_a.seek(_player_b.get_playback_position())
+		_player_b.stop()
+		_player_b.volume_db = _linear_to_db(0.0)
+		_fading = false
+	)
 
 
 # Ferma immediatamente la musica.

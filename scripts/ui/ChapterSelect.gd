@@ -49,6 +49,11 @@ func _ready() -> void:
 		return
 
 	set_anchors_preset(Control.PRESET_FULL_RECT)
+
+	var am: Node = get_node_or_null("/root/AudioManager")
+	if am != null:
+		am.play_menu_music()
+
 	_setup_header()
 	_build_chapter_list()
 	_fade_in_from_black()
