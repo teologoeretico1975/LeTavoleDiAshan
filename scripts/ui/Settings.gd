@@ -28,7 +28,7 @@ func _build_ui() -> void:
 	# Contenitore verticale centrato.
 	var vbox := VBoxContainer.new()
 	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	vbox.add_theme_constant_override("separation", 40)
+	vbox.add_theme_constant_override("separation", 24)
 	vbox.anchor_left   = 0.0; vbox.anchor_right  = 1.0
 	vbox.anchor_top    = 0.0; vbox.anchor_bottom = 1.0
 	add_child(vbox)
@@ -48,8 +48,10 @@ func _build_ui() -> void:
 	_build_sfx_section(vbox)
 	vbox.add_child(_make_separator())
 	_build_language_section(vbox)
-	vbox.add_child(_make_separator())
-	_build_back_button(vbox)
+
+	# Il pulsante Indietro è fuori dal VBox — ancorato in basso al centro in modo
+	# che sia sempre visibile indipendentemente dall'altezza dello schermo.
+	_build_back_button(self)
 
 	_refresh_lang_buttons()
 
@@ -281,16 +283,21 @@ func _refresh_lang_buttons() -> void:
 # Pulsante Indietro
 # ---------------------------------------------------------------------------
 
-func _build_back_button(p_parent: VBoxContainer) -> void:
-	var hbox := HBoxContainer.new()
-	hbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	p_parent.add_child(hbox)
-
+func _build_back_button(p_parent: Control) -> void:
 	var btn := Button.new()
 	btn.text = tr("SETTINGS_BACK")
-	btn.custom_minimum_size = Vector2(200, 56)
 	btn.add_theme_font_size_override("font_size", 24)
 	btn.add_theme_color_override("font_color", COL_DARK)
+
+	# Ancorato in basso al centro — sempre visibile indipendentemente dall'altezza.
+	btn.anchor_left   = 0.5
+	btn.anchor_right  = 0.5
+	btn.anchor_top    = 1.0
+	btn.anchor_bottom = 1.0
+	btn.offset_left   = -100.0
+	btn.offset_right  =  100.0
+	btn.offset_top    = -72.0
+	btn.offset_bottom = -20.0
 
 	var s_n := StyleBoxFlat.new()
 	s_n.bg_color = COL_GOLD
@@ -304,7 +311,7 @@ func _build_back_button(p_parent: VBoxContainer) -> void:
 	btn.add_theme_stylebox_override("hover",   s_h)
 	btn.add_theme_stylebox_override("pressed", s_h)
 	btn.pressed.connect(_on_back_pressed)
-	hbox.add_child(btn)
+	p_parent.add_child(btn)
 
 
 func _on_back_pressed() -> void:
