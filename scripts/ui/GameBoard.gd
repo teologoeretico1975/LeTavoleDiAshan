@@ -127,6 +127,7 @@ func _ready() -> void:
 	_setup_hud()
 	_setup_hint_button()
 	_build_level_complete_panel()
+	_fade_in_from_black()
 
 
 # Inizializza la board direttamente da dati grezzi, senza passare per LevelLoader.
@@ -1053,3 +1054,18 @@ func _on_back_pressed() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
 		_on_back_pressed()
+
+
+# ---------------------------------------------------------------------------
+# Transizione ingresso
+# ---------------------------------------------------------------------------
+
+func _fade_in_from_black() -> void:
+	var black := ColorRect.new()
+	black.color        = Color(0.0, 0.0, 0.0, 1.0)
+	black.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	black.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(black)
+	var tween := create_tween()
+	tween.tween_property(black, "color:a", 0.0, 0.35)
+	tween.tween_callback(black.queue_free)

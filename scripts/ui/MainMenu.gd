@@ -74,6 +74,7 @@ func _ready() -> void:
 		_build_debug_reset_button()
 
 	_refresh_texts()
+	_fade_in_from_black()
 
 
 func _refresh_texts() -> void:
@@ -131,6 +132,21 @@ func _on_settings_pressed() -> void:
 
 func _on_quit_pressed() -> void:
 	get_tree().quit()
+
+
+# ---------------------------------------------------------------------------
+# Transizione ingresso
+# ---------------------------------------------------------------------------
+
+func _fade_in_from_black() -> void:
+	var black := ColorRect.new()
+	black.color        = Color(0.0, 0.0, 0.0, 1.0)
+	black.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	black.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(black)
+	var tween := create_tween()
+	tween.tween_property(black, "color:a", 0.0, 0.35)
+	tween.tween_callback(black.queue_free)
 
 
 # ---------------------------------------------------------------------------
