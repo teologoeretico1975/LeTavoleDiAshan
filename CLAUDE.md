@@ -528,6 +528,13 @@ Modello **freemium**:
 | Vignette capitolo in DiaryScreen | `assets/art/vignette_chapter_1–6.png`; `TextureRect "VignetteImage"` inserito in `_build_ui()` tra separatore e testo; `STRETCH_KEEP_ASPECT_CENTERED`, `EXPAND_IGNORE_SIZE`, altezza fissa 200px; fade-in automatico con il resto della schermata (figlio di `_root_control`) |
 | Fix typo asset | `vignette_chapre_3.png` → `vignette_chapter_3.png` (typo nel nome file) |
 
+### Completato in sessione (2026-06-29 — Sito web)
+
+| Componente | Note |
+|---|---|
+| Sito web GitHub Pages | Repository separato `LeTavoleDiAshanSite`; HTML/CSS statico; homepage con hero scriptorium, gallery screenshot, sezione features, privacy policy; live su `teologoeretico1975.github.io/LeTavoleDiAshanSite/` |
+| Hero background | Immagine scriptorium (monaci di spalle, candele, manoscritti) — coerente con l'estetica dark fantasy del gioco |
+
 ### Open point
 
 _Nessuno._
@@ -542,13 +549,14 @@ _Nessuno._
 | 2 | ~~**Daily Puzzle**~~ | ✅ Completato — generazione deterministica, schermata dedicata, free per tutti |
 | 3 | ~~**Tile art**~~ | ✅ Completato — texture aggiornata, board pergamena, symbol overlay per capitolo con reveal animato |
 | 4 | ~~**Sfondi narrativi**~~ | ✅ Completato — sfondo specifico per capitolo in GameBoard e LevelSelect, pergamena semi-trasparente |
+| 4b | ~~**Sito web**~~ | ✅ Completato — GitHub Pages live, hero scriptorium, gallery, privacy policy |
 | 5 | **IAP** | Sblocco completo 0.99€, gate dopo Capitolo II; Google Play Billing integration |
 
 #### Lancio
 
 | Priorità | Componente | Note |
 |---|---|---|
-| 5 | **Google Play setup** | Account developer, firma APK release, listing ASO-ottimizzato per search intent |
+| 5 | **Google Play setup** | Account developer, firma APK release, listing ASO-ottimizzato per search intent; aggiornare bottone "Coming soon" sul sito con link Play Store |
 
 #### Post-lancio
 
