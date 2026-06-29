@@ -75,6 +75,7 @@ func _ready() -> void:
 	# restituisce false negli export release, quindi sparisce in produzione.
 	if OS.is_debug_build():
 		_build_debug_reset_button()
+		_build_debug_unlock_button()
 
 	_refresh_texts()
 	_fade_in_from_black()
@@ -195,5 +196,46 @@ func _on_debug_reset_pressed() -> void:
 	var saver: Node = get_node_or_null("/root/SaveManager")
 	if saver != null:
 		saver.reset_all()
-	# Ricarica la scena corrente per riflettere il reset.
+	get_tree().reload_current_scene()
+
+
+func _build_debug_unlock_button() -> void:
+	var saver: Node = get_node_or_null("/root/SaveManager")
+	var is_active: bool = saver != null and saver.is_debug_unlock_active()
+
+	var btn := Button.new()
+	btn.name = "DebugUnlockBtn"
+	btn.text = "[ DEV ] Unlock OFF" if not is_active else "[ DEV ] Unlock ON"
+	btn.add_theme_font_size_override("font_size", 14)
+	btn.add_theme_color_override("font_color",
+		Color(0.4, 1.0, 0.4) if is_active else Color(1.0, 0.85, 0.4))
+
+	var s_n := StyleBoxFlat.new()
+	s_n.bg_color    = Color(0.0, 0.2, 0.0, 0.5) if is_active else Color(0.2, 0.15, 0.0, 0.5)
+	s_n.border_color = Color(0.2, 0.8, 0.2, 0.8) if is_active else Color(0.8, 0.6, 0.2, 0.8)
+	s_n.border_width_left = 1; s_n.border_width_right  = 1
+	s_n.border_width_top  = 1; s_n.border_width_bottom = 1
+	s_n.corner_radius_top_left     = 6; s_n.corner_radius_top_right    = 6
+	s_n.corner_radius_bottom_left  = 6; s_n.corner_radius_bottom_right = 6
+	btn.add_theme_stylebox_override("normal", s_n)
+
+	# Posizionato in basso a destra sopra il pulsante Reset.
+	btn.anchor_left   = 1.0; btn.anchor_right  = 1.0
+	btn.anchor_top    = 1.0; btn.anchor_bottom = 1.0
+	btn.offset_left   = -190.0; btn.offset_right  = -8.0
+	btn.offset_top    = -84.0;  btn.offset_bottom = -48.0
+
+	btn.pressed.connect(_on_debug_unlock_pressed)
+	add_child(btn)
+
+
+func _on_debug_unlock_pressed() -> void:
+	var saver: Node = get_node_or_null("/root/SaveManager")
+	if saver == null:
+		return
+	if saver.is_debug_unlock_active():
+		saver.disable_debug_unlock()
+	else:
+		saver.enable_debug_unlock()
+	# Ricarica per aggiornare lo stato del pulsante e la LevelSelect.
 	get_tree().reload_current_scene()

@@ -38,7 +38,10 @@ extends Node
 # Costanti
 # ---------------------------------------------------------------------------
 
-const SAVE_PATH := "user://save.bin"
+const SAVE_PATH        := "user://save.bin"
+const SAVE_UNLOCKED    := "user://save_unlocked.bin"
+const SAVE_BAK         := "user://save.bin.bak"
+const DEBUG_SENTINEL   := "user://save.debug_active"
 
 # Chiave AES-256 derivata via SHA-256 dalla stringa qui sotto.
 # Hardcoded per necessità (è un gioco offline single-player), ma sufficiente
@@ -81,12 +84,17 @@ const HINT_COST := 20
 # Caricata una volta in _ready(), poi tenuta in sync con il disco ad ogni salvataggio.
 var _data: Dictionary = {}
 
+# Debug-only: quando true, is_level_unlocked e is_chapter_unlocked restituiscono
+# sempre true. I salvataggi vanno su save_unlocked.bin. Mai true in build release.
+var _debug_unlock_mode: bool = false
+
 
 # ---------------------------------------------------------------------------
 # Inizializzazione
 # ---------------------------------------------------------------------------
 
 func _ready() -> void:
+	_debug_cleanup_sentinel()
 	_load_from_disk()
 	_migrate_diaries()
 	# La lingua viene applicata da LocalizationManager (autoload successivo).
@@ -200,6 +208,8 @@ func get_level_progress(p_chapter: int, p_level_id: int) -> Variant:
 # Esempio d'uso:
 #   if SaveManager.is_level_unlocked(2, 5): ...
 func is_level_unlocked(p_chapter: int, p_level_id: int) -> bool:
+	if _debug_unlock_mode:
+		return true
 	if p_level_id <= 1:
 		return true
 
@@ -248,6 +258,8 @@ func get_chapter_progress(p_chapter: int) -> Dictionary:
 # Esempio d'uso:
 #   if SaveManager.is_chapter_unlocked(3): ...
 func is_chapter_unlocked(p_chapter: int) -> bool:
+	if _debug_unlock_mode:
+		return true
 	if p_chapter <= 1:
 		return true
 
@@ -433,6 +445,72 @@ func save_daily_record(p_date: String, p_moves: int) -> void:
 
 
 # ---------------------------------------------------------------------------
+# API debug unlock (OS.is_debug_build() only — mai chiamate in release)
+# ---------------------------------------------------------------------------
+
+func is_debug_unlock_active() -> bool:
+	return _debug_unlock_mode
+
+
+# Attiva la modalità unlock: backup save.bin → save.bin.bak, crea sentinella,
+# abilita il flag. I save futuri vanno su save_unlocked.bin.
+func enable_debug_unlock() -> void:
+	if _debug_unlock_mode:
+		return
+	var dir := DirAccess.open("user://")
+	if dir != null and FileAccess.file_exists(SAVE_PATH):
+		dir.copy(ProjectSettings.globalize_path(SAVE_PATH),
+		         ProjectSettings.globalize_path(SAVE_BAK))
+	# Crea il file sentinella — sopravvive a crash e chiusure forzate.
+	var sentinel := FileAccess.open(DEBUG_SENTINEL, FileAccess.WRITE)
+	if sentinel != null:
+		sentinel.close()
+	_debug_unlock_mode = true
+
+
+# Disattiva la modalità unlock: cancella save_unlocked.bin, ripristina save.bin
+# dal backup, ricarica _data in memoria, rimuove la sentinella.
+func disable_debug_unlock() -> void:
+	if not _debug_unlock_mode:
+		return
+	_debug_unlock_mode = false
+	var abs_unlocked := ProjectSettings.globalize_path(SAVE_UNLOCKED)
+	var abs_bak      := ProjectSettings.globalize_path(SAVE_BAK)
+	var abs_save     := ProjectSettings.globalize_path(SAVE_PATH)
+	var abs_sentinel := ProjectSettings.globalize_path(DEBUG_SENTINEL)
+	if FileAccess.file_exists(SAVE_UNLOCKED):
+		DirAccess.remove_absolute(abs_unlocked)
+	if FileAccess.file_exists(SAVE_BAK):
+		var dir := DirAccess.open("user://")
+		if dir != null:
+			dir.copy(abs_bak, abs_save)
+		DirAccess.remove_absolute(abs_bak)
+	if FileAccess.file_exists(DEBUG_SENTINEL):
+		DirAccess.remove_absolute(abs_sentinel)
+	# Ricarica il save reale in memoria.
+	_data = {}
+	_load_from_disk()
+
+
+# Chiamata in _ready(): se la sentinella esiste, la sessione debug è stata
+# interrotta (crash o chiusura forzata). Ripristina il save reale.
+func _debug_cleanup_sentinel() -> void:
+	if not FileAccess.file_exists(DEBUG_SENTINEL):
+		return
+	push_warning("SaveManager: sentinella debug trovata — ripristino save reale.")
+	var abs_bak  := ProjectSettings.globalize_path(SAVE_BAK)
+	var abs_save := ProjectSettings.globalize_path(SAVE_PATH)
+	if FileAccess.file_exists(SAVE_BAK):
+		var dir := DirAccess.open("user://")
+		if dir != null:
+			dir.copy(abs_bak, abs_save)
+		DirAccess.remove_absolute(abs_bak)
+	if FileAccess.file_exists(SAVE_UNLOCKED):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_UNLOCKED))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(DEBUG_SENTINEL))
+
+
+# ---------------------------------------------------------------------------
 # Calcolo stelle
 # ---------------------------------------------------------------------------
 
@@ -525,7 +603,15 @@ func _read_plain_legacy() -> String:
 
 
 func _save_to_disk() -> void:
-	_save_to_disk_text(JSON.stringify(_data))
+	# In modalità debug unlock i progressi vanno su file separato —
+	# il save reale (save.bin) rimane intatto.
+	var path: String = SAVE_UNLOCKED if _debug_unlock_mode else SAVE_PATH
+	var file := FileAccess.open_encrypted_with_pass(path, FileAccess.WRITE, _SAVE_KEY)
+	if file == null:
+		push_error("SaveManager: impossibile scrivere su %s." % path)
+		return
+	file.store_string(JSON.stringify(_data))
+	file.close()
 
 
 # Scrive p_text cifrato su SAVE_PATH.

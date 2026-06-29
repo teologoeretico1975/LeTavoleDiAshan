@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://daily_puzzle_screen"]
 
 [ext_resource type="Script" path="res://scripts/ui/DailyPuzzleScreen.gd" id="1_daily"]
-[ext_resource type="Texture2D" uid="uid://dspet6yajtn7s" path="res://assets/backgrounds/main_menu_bg.jpg" id="2_bg"]
+[ext_resource type="Texture2D" uid="uid://cdl33bxd7ej3g" path="res://assets/backgrounds/main_menu_bg.png" id="2_bg"]
 [ext_resource type="Theme" uid="uid://ashan_theme" path="res://assets/themes/ashan_theme.tres" id="3_theme"]
 
 [node name="DailyPuzzleScreen" type="Control"]

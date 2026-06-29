@@ -131,6 +131,7 @@ func _ready() -> void:
 
 	_chapter_overlay = get_node_or_null("ChapterOverlay") as ColorRect
 	_set_chapter_overlay(chapter)
+	_set_chapter_background(chapter)
 
 	var am: Node = get_node_or_null("/root/AudioManager")
 	if am != null:
@@ -250,6 +251,21 @@ func _set_chapter_overlay(p_chapter: int) -> void:
 	]
 	var idx: int = clampi(p_chapter - 1, 0, COLORS.size() - 1)
 	_chapter_overlay.color = COLORS[idx]
+
+
+# Carica lo sfondo narrativo specifico per capitolo nel TextureRect della scena.
+# Fallback: main_menu_bg.png se il file del capitolo non esiste.
+func _set_chapter_background(p_chapter: int) -> void:
+	var bg_node := get_node_or_null("TextureRect") as TextureRect
+	if bg_node == null:
+		return
+	var path: String = "res://assets/backgrounds/chapter_%02d_bg.png" % p_chapter
+	if ResourceLoader.exists(path):
+		bg_node.texture = ResourceLoader.load(path) as Texture2D
+	else:
+		var fallback: String = "res://assets/backgrounds/main_menu_bg.png"
+		if ResourceLoader.exists(fallback):
+			bg_node.texture = ResourceLoader.load(fallback) as Texture2D
 
 
 # Costruisce l'HUD in cima alla schermata con due righe ordinate:

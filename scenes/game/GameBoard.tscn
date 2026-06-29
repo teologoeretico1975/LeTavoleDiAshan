@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://c7kn2p4qb8x3m"]
 
 [ext_resource type="Script" uid="uid://dwymcb6ruvrn2" path="res://scripts/ui/GameBoard.gd" id="1_gameboard"]
-[ext_resource type="Texture2D" uid="uid://dspet6yajtn7s" path="res://assets/backgrounds/main_menu_bg.jpg" id="2_bg"]
+[ext_resource type="Texture2D" uid="uid://cdl33bxd7ej3g" path="res://assets/backgrounds/main_menu_bg.png" id="2_bg"]
 [ext_resource type="Theme" uid="uid://ashan_theme" path="res://assets/themes/ashan_theme.tres" id="3_theme"]
 
 [node name="GameBoard" type="Control" unique_id=1394509845]
