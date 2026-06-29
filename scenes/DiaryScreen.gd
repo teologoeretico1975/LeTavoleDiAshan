@@ -100,6 +100,22 @@ func _build_ui() -> void:
 	sep.modulate = COL_MUTED
 	vbox.add_child(sep)
 
+	# Vignetta del capitolo — immagine narrativa tra separatore e testo.
+	# Altezza fissa 200px: abbastanza evocativa, non schiaccia il testo su schermi bassi.
+	var vignette_path: String = "res://assets/art/vignette_chapter_%d.png" % chapter_index
+	if ResourceLoader.exists(vignette_path):
+		var vignette_tex := ResourceLoader.load(vignette_path) as Texture2D
+		if vignette_tex != null:
+			var vignette := TextureRect.new()
+			vignette.name         = "VignetteImage"
+			vignette.texture      = vignette_tex
+			vignette.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			vignette.expand_mode  = TextureRect.EXPAND_IGNORE_SIZE
+			vignette.custom_minimum_size = Vector2(0, 200)
+			vignette.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			vbox.add_child(vignette)
+
 	# ScrollContainer — scrollbar nascosta, scroll orizzontale disabilitato.
 	# NOTA: il Label figlio non usa SIZE_EXPAND_FILL perché dentro ScrollContainer
 	# causerebbe larghezza indeterminata e il testo non si vedrebbe. La larghezza
