@@ -521,6 +521,13 @@ Modello **freemium**:
 | Pergamena semi-trasparente | `board_bg.modulate = Color(1,1,1,0.35)` — lo sfondo narrativo trasparisce attraverso la pergamena per effetto etereo |
 | Debug unlock toggle | `SaveManager._debug_unlock_mode`: flag in-memoria; backup `save.bin → save.bin.bak`; salvataggi su `save_unlocked.bin`; sentinella `save.debug_active` per crash recovery automatico; toggle visibile solo in `OS.is_debug_build()` |
 
+### Completato in sessione (2026-06-29 — Vignette DiaryScreen)
+
+| Componente | Note |
+|---|---|
+| Vignette capitolo in DiaryScreen | `assets/art/vignette_chapter_1–6.png`; `TextureRect "VignetteImage"` inserito in `_build_ui()` tra separatore e testo; `STRETCH_KEEP_ASPECT_CENTERED`, `EXPAND_IGNORE_SIZE`, altezza fissa 200px; fade-in automatico con il resto della schermata (figlio di `_root_control`) |
+| Fix typo asset | `vignette_chapre_3.png` → `vignette_chapter_3.png` (typo nel nome file) |
+
 ### Open point
 
 _Nessuno._

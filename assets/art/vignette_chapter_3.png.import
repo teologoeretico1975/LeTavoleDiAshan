@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bm7dpefpu0t12"
-path="res://.godot/imported/vignette_chapre_3.png-f78d7308e010d574f2abaf7e1b81b3df.ctex"
+path="res://.godot/imported/vignette_chapter_3.png-75387ec9fa1c372d95ba16523a9cb87a.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/art/vignette_chapter_3.png"
-dest_files=["res://.godot/imported/vignette_chapre_3.png-f78d7308e010d574f2abaf7e1b81b3df.ctex"]
+dest_files=["res://.godot/imported/vignette_chapter_3.png-75387ec9fa1c372d95ba16523a9cb87a.ctex"]
 
 [params]
 
