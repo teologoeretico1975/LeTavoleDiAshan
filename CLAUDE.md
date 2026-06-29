@@ -512,6 +512,15 @@ Modello **freemium**:
 | MainMenu + ChapterSelect | Chiamano `play_menu_music()` in `_ready()` — la musica continua senza riavviarsi tra le due schermate |
 | LevelSelect scroll | `GridContainer` wrappato in `ScrollContainer` (vertical `SHOW_NEVER`, horizontal `DISABLED`) — tutti i livelli accessibili anche su schermi bassi |
 
+### Completato in sessione (2026-06-29 — Sfondi narrativi + Debug unlock)
+
+| Componente | Note |
+|---|---|
+| Sfondi narrativi per capitolo | `chapter_01–06_bg.png` in `assets/backgrounds/`; `GameBoard._set_chapter_background()` li carica a runtime; `LevelSelect._set_chapter_background()` idem — sfondo e musica coerenti per capitolo |
+| `main_menu_bg.png` | Sostituisce `.jpg` in tutte le scene (MainMenu, ChapterSelect, LevelSelect, DailyPuzzleScreen, Settings, GameBoard fallback) |
+| Pergamena semi-trasparente | `board_bg.modulate = Color(1,1,1,0.35)` — lo sfondo narrativo trasparisce attraverso la pergamena per effetto etereo |
+| Debug unlock toggle | `SaveManager._debug_unlock_mode`: flag in-memoria; backup `save.bin → save.bin.bak`; salvataggi su `save_unlocked.bin`; sentinella `save.debug_active` per crash recovery automatico; toggle visibile solo in `OS.is_debug_build()` |
+
 ### Open point
 
 _Nessuno._
@@ -525,7 +534,8 @@ _Nessuno._
 | 1 | ~~**SFX**~~ | ✅ Completato — 5 trigger, volume separato, slider in Settings |
 | 2 | ~~**Daily Puzzle**~~ | ✅ Completato — generazione deterministica, schermata dedicata, free per tutti |
 | 3 | ~~**Tile art**~~ | ✅ Completato — texture aggiornata, board pergamena, symbol overlay per capitolo con reveal animato |
-| 4 | **IAP** | Sblocco completo 0.99€, gate dopo Capitolo II; Google Play Billing integration |
+| 4 | ~~**Sfondi narrativi**~~ | ✅ Completato — sfondo specifico per capitolo in GameBoard e LevelSelect, pergamena semi-trasparente |
+| 5 | **IAP** | Sblocco completo 0.99€, gate dopo Capitolo II; Google Play Billing integration |
 
 #### Lancio
 
