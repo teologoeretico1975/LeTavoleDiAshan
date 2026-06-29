@@ -76,7 +76,17 @@ func _ready() -> void:
 	if am != null:
 		am.fade_to_chapter(chapter)
 
+	_set_chapter_background(chapter)
 	_fade_in_from_black()
+
+
+func _set_chapter_background(p_chapter: int) -> void:
+	var bg_node := get_node_or_null("TextureRect") as TextureRect
+	if bg_node == null:
+		return
+	var path: String = "res://assets/backgrounds/chapter_%02d_bg.png" % p_chapter
+	if ResourceLoader.exists(path):
+		bg_node.texture = ResourceLoader.load(path) as Texture2D
 
 
 # ---------------------------------------------------------------------------
